@@ -57,6 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define BLACKPILL_USER_LED_Pin GPIO_PIN_13
+#define BLACKPILL_USER_LED_GPIO_Port GPIOC
 #define RF24_INT_Pin GPIO_PIN_2
 #define RF24_INT_GPIO_Port GPIOA
 #define RF24_CE_Pin GPIO_PIN_3

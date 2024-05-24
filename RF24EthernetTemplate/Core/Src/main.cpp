@@ -69,14 +69,18 @@ void StartMainTask(void *argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #if SWD_DEBUG_WRITE == 1
+int __io_putchar(int ch) {
+    ITM_SendChar(ch);
+    return ch;
+}
+
 int _write(int file, char *ptr, int len)
 {
 	switch (file)
 	{
 	case STDOUT_FILENO:
 	case STDERR_FILENO:
-		/* Used for core_debug() */
-
+		printf("%.*s", len, ptr);
 		break;
 	case STDIN_FILENO:
 		break;
@@ -264,10 +268,21 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, RF24_CE_Pin|RF24_CSN_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : BLACKPILL_USER_LED_Pin */
+  GPIO_InitStruct.Pin = BLACKPILL_USER_LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(BLACKPILL_USER_LED_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RF24_INT_Pin */
   GPIO_InitStruct.Pin = RF24_INT_Pin;
@@ -300,10 +315,13 @@ static void MX_GPIO_Init(void)
 void StartMainTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
+	printf("Main Task started");
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
+    osDelay(200);
   }
   /* USER CODE END 5 */
 }
