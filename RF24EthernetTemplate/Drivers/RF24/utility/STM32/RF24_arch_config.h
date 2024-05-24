@@ -50,11 +50,24 @@
 #ifndef PROGMEM
 	#define PROGMEM
 #endif
+
+#ifndef PSTR
 #define PSTR(x)          (x)
+#endif
+
 #define PRIPSTR          "%s"
+
+#ifndef pgm_read_word
 #define pgm_read_word(p) (*(const unsigned char*)(p))
+#endif
+
+#ifndef pgm_read_byte
 #define pgm_read_byte(p) (*(const unsigned short*)(p))
+#endif
+
+#ifndef pgm_read_ptr
 #define pgm_read_ptr(p)  (*(const void*)(p))
+#endif
 
 #define delayMicroseconds(usecs) __usleep(usecs)
 #define delay(msecs)             HAL_Delay(msecs)

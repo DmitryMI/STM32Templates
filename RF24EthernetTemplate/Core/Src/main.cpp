@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "Print.h"
 #include "unistd.h"
+#include "Rf24SimpleMeshClient.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -323,17 +324,17 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartMainTask */
 void StartMainTask(void *argument)
 {
-  /* USER CODE BEGIN 5 */
-	printf("Main Task started");
+	/* USER CODE BEGIN 5 */
+	Rf24SimpleMeshClient simpleMeshClient(&hspi1, RF24_CE_GPIO_Port, RF24_CE_Pin, RF24_CSN_GPIO_Port, RF24_CSN_Pin);
+	simpleMeshClient.setup();
 
-  /* Infinite loop */
-  for(;;)
-  {
-	  HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
-	  printf("Main Task Heartbeat: %ld\n", HAL_GetTick());
-    osDelay(200);
-  }
-  /* USER CODE END 5 */
+	for (;;)
+	{
+		simpleMeshClient.update();
+		HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
+		osThreadYield();
+	}
+	/* USER CODE END 5 */
 }
 
 /**
