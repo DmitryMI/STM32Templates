@@ -69,26 +69,34 @@ void StartMainTask(void *argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #if SWD_DEBUG_WRITE == 1
-int __io_putchar(int ch) {
-    ITM_SendChar(ch);
-    return ch;
-}
 
-int _write(int file, char *ptr, int len)
+extern "C"
 {
-	switch (file)
+	int __io_putchar(int ch)
 	{
-	case STDOUT_FILENO:
-	case STDERR_FILENO:
-		printf("%.*s", len, ptr);
-		break;
-	case STDIN_FILENO:
-		break;
-	default:
-		((class Print*) file)->write((uint8_t*) ptr, len);
-		break;
+		ITM_SendChar(ch);
+		return ch;
 	}
-	return len;
+
+	int _write(int file, char *ptr, int len)
+	{
+		switch (file)
+		{
+		case STDOUT_FILENO:
+		case STDERR_FILENO:
+			for(int i = 0; i < len; i++)
+			{
+				ITM_SendChar(ptr[i]);
+			}
+			break;
+		case STDIN_FILENO:
+			break;
+		default:
+			((class Print*) file)->write((uint8_t*) ptr, len);
+			break;
+		}
+		return len;
+	}
 }
 #endif
 /* USER CODE END 0 */
@@ -270,6 +278,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin, GPIO_PIN_RESET);
@@ -321,6 +330,7 @@ void StartMainTask(void *argument)
   for(;;)
   {
 	  HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
+	  printf("Main Task Heartbeat: %d\n", HAL_GetTick());
     osDelay(200);
   }
   /* USER CODE END 5 */
