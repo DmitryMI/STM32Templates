@@ -23,7 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "Print.h"
+#include "unistd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,16 +39,16 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define SWD_DEBUG_WRITE 1
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
+/* Definitions for mainTask */
+osThreadId_t mainTaskHandle;
+const osThreadAttr_t mainTask_attributes = {
+  .name = "mainTask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
@@ -59,7 +60,7 @@ const osThreadAttr_t defaultTask_attributes = {
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
-void StartDefaultTask(void *argument);
+void StartMainTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -67,7 +68,25 @@ void StartDefaultTask(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+#if SWD_DEBUG_WRITE == 1
+int _write(int file, char *ptr, int len)
+{
+	switch (file)
+	{
+	case STDOUT_FILENO:
+	case STDERR_FILENO:
+		/* Used for core_debug() */
 
+		break;
+	case STDIN_FILENO:
+		break;
+	default:
+		((class Print*) file)->write((uint8_t*) ptr, len);
+		break;
+	}
+	return len;
+}
+#endif
 /* USER CODE END 0 */
 
 /**
@@ -127,8 +146,8 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* creation of mainTask */
+  mainTaskHandle = osThreadNew(StartMainTask, NULL, &mainTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -271,14 +290,14 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_StartMainTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the mainTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+/* USER CODE END Header_StartMainTask */
+void StartMainTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
