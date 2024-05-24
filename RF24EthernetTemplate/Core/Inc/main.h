@@ -57,6 +57,14 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define RF24_CSN_Pin GPIO_PIN_4
+#define RF24_CSN_GPIO_Port GPIOA
+#define RF24_SCK_Pin GPIO_PIN_5
+#define RF24_SCK_GPIO_Port GPIOA
+#define RF24_MISO_Pin GPIO_PIN_6
+#define RF24_MISO_GPIO_Port GPIOA
+#define RF24_MOSI_Pin GPIO_PIN_7
+#define RF24_MOSI_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
