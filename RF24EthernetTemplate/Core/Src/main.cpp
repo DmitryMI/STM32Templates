@@ -330,7 +330,7 @@ void StartMainTask(void *argument)
   for(;;)
   {
 	  HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
-	  printf("Main Task Heartbeat: %d\n", HAL_GetTick());
+	  printf("Main Task Heartbeat: %ld\n", HAL_GetTick());
     osDelay(200);
   }
   /* USER CODE END 5 */
