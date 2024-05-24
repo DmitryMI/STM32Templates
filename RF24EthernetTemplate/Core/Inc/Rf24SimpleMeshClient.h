@@ -15,16 +15,14 @@
 #include <RF24Ethernet.h>
 #include "IPAddress.h"
 
+extern RF24 radio;
+extern RF24Mesh mesh;
+extern RF24Network network;
+
 class Rf24SimpleMeshClient
 {
 public:
-	Rf24SimpleMeshClient(
-			SPI_HandleTypeDef *rf24_spi_handle,
-			GPIO_TypeDef *rf24_ce_port,
-			uint16_t rf24_ce,
-			GPIO_TypeDef *rf24_csn_port,
-			uint16_t rf24_csn
-			);
+	Rf24SimpleMeshClient(SPI_HandleTypeDef *rf24_spi_handle);
 	virtual ~Rf24SimpleMeshClient();
 
 	bool setup();
@@ -33,10 +31,6 @@ public:
 
 private:
 	RF24_SPI spi;
-	RF24 radio;
-	RF24Network network;
-	RF24Mesh mesh;
-	RF24EthernetClass RF24Ethernet;
 	EthernetClient client;
 
 	uint32_t counter = 0;

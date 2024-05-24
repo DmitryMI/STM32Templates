@@ -54,7 +54,10 @@ const osThreadAttr_t mainTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
-
+RF24 radio(encode_pin(RF24_CE_GPIO_Port, RF24_CE_Pin), encode_pin(RF24_CSN_GPIO_Port, RF24_CSN_Pin));
+RF24Network network(radio);
+RF24Mesh mesh(radio, network);
+RF24EthernetClass RF24Ethernet(radio, network, mesh);
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -325,13 +328,14 @@ static void MX_GPIO_Init(void)
 void StartMainTask(void *argument)
 {
 	/* USER CODE BEGIN 5 */
-	Rf24SimpleMeshClient simpleMeshClient(&hspi1, RF24_CE_GPIO_Port, RF24_CE_Pin, RF24_CSN_GPIO_Port, RF24_CSN_Pin);
+	Rf24SimpleMeshClient simpleMeshClient(&hspi1);
 	simpleMeshClient.setup();
 
 	for (;;)
 	{
 		simpleMeshClient.update();
 		HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
+		RF24Ethernet.update();
 		osThreadYield();
 	}
 	/* USER CODE END 5 */

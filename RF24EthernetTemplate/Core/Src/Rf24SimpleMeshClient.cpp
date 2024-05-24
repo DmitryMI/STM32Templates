@@ -7,19 +7,7 @@
 
 #include "Rf24SimpleMeshClient.h"
 
-Rf24SimpleMeshClient::Rf24SimpleMeshClient(
-		SPI_HandleTypeDef *rf24_spi_handle,
-		GPIO_TypeDef *rf24_ce_port,
-		uint16_t rf24_ce,
-		GPIO_TypeDef *rf24_csn_port,
-		uint16_t rf24_csn
-	) :
-		radio(encode_pin(rf24_ce_port, rf24_ce), encode_pin(rf24_csn_port, rf24_csn)),
-		network(radio),
-		mesh(radio, network),
-		RF24Ethernet(
-		radio, network, mesh
-	)
+Rf24SimpleMeshClient::Rf24SimpleMeshClient(SPI_HandleTypeDef *rf24_spi_handle)
 {
 	spi.begin(rf24_spi_handle);
 }
@@ -36,6 +24,10 @@ bool Rf24SimpleMeshClient::setup()
 		printf("radio.begin() failed");
 		return false;
 	}
+	else
+	{
+		printf("radio.begin() OK");
+	}
 
 	IPAddress myIP(10, 10, 2, 4);
 	Ethernet.begin(myIP);
@@ -43,6 +35,10 @@ bool Rf24SimpleMeshClient::setup()
 	{
 		printf("mesh.begin() failed");
 		return false;
+	}
+	else
+	{
+		printf("mesh.begin() OK");
 	}
 
 	// If you'll be making outgoing connections from the Arduino to the rest of

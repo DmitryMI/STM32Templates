@@ -48,7 +48,7 @@ extern "C" {
 #endif
 
 #include "ethernet_comp.h"
-#include "../Arduino/IPAddress.h"
+#include "IPAddress.h"
 #include "RF24Client.h"
 #include "RF24Server.h"
 
