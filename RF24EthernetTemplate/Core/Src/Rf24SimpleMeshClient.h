@@ -13,11 +13,8 @@
 #include <RF24Network.h>
 #include <RF24Mesh.h>
 #include <RF24Ethernet.h>
+#include <array>
 #include "IPAddress.h"
-
-extern RF24 radio;
-extern RF24Mesh mesh;
-extern RF24Network network;
 
 class Rf24SimpleMeshClient
 {
@@ -25,26 +22,21 @@ public:
 	Rf24SimpleMeshClient(SPI_HandleTypeDef *rf24_spi_handle);
 	virtual ~Rf24SimpleMeshClient();
 
-	bool setup();
-
-	void update();
+	void taskMethod();
 
 private:
 	RF24_SPI spi;
 	EthernetClient client;
-	EthernetServer server = EthernetServer(1000);
 
 	uint32_t counter = 0;
 	uint32_t reqTimer = 0;
 	uint32_t meshTimer = 0;
 
-	IPAddress icewind = IPAddress(109, 120, 203, 163);  //http://109.120.203.163/web/blyad.club/library/litrature/Salvatore,%20R.A/Salvatore,%20R.A%20-%20Icewind%20Dale%20Trilogy%201%20-%20Crystal%20Shard,%20The.txt
-	IPAddress ascii = IPAddress(208, 86, 224, 90);      //http://artscene.textfiles.com/asciiart/texthistory.txt
-	IPAddress host = ascii;
+	int currentHostIndex = 0;
 
+	bool setup();
+	void loop();
 	void clientConnect();
-	void clientLoop();
-	void serverLoop();
 };
 
 #endif /* INC_RF24SIMPLEMESHCLIENT_H_ */

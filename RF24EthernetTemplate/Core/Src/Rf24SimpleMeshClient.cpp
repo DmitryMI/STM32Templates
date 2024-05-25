@@ -6,6 +6,14 @@
  */
 
 #include "Rf24SimpleMeshClient.h"
+#include "cmsis_os.h"
+
+RF24 radio(encode_pin(RF24_CE_GPIO_Port, RF24_CE_Pin), encode_pin(RF24_CSN_GPIO_Port, RF24_CSN_Pin));
+RF24Network network(radio);
+RF24Mesh mesh(radio, network);
+
+// Needs to be defined as a global variable, because the RF24Ethernet library declared this as external variable.
+RF24EthernetClass RF24Ethernet(radio, network, mesh);
 
 Rf24SimpleMeshClient::Rf24SimpleMeshClient(SPI_HandleTypeDef *rf24_spi_handle)
 {
@@ -17,49 +25,65 @@ Rf24SimpleMeshClient::~Rf24SimpleMeshClient()
 	// TODO Auto-generated destructor stub
 }
 
-bool Rf24SimpleMeshClient::setup()
+void Rf24SimpleMeshClient::taskMethod()
 {
-	if (!radio.begin(&spi))
+	if (!setup())
 	{
-		printf("radio.begin() failed");
-		return false;
-	}
-	else
-	{
-		printf("radio.begin() OK");
+		return;
 	}
 
-	IPAddress myIP(10, 10, 2, 4);
-	Ethernet.begin(myIP);
-	if (!mesh.begin())
+	loop();
+}
+
+bool Rf24SimpleMeshClient::setup()
+{
+	printf("Rf24SimpleMeshClient started\n");
+
+	if (!radio.begin(&spi))
 	{
-		printf("mesh.begin() failed");
+		printf("radio.begin() failed\n");
 		return false;
 	}
 	else
 	{
-		printf("mesh.begin() OK");
+		printf("radio.begin() OK\n");
 	}
+
+	IPAddress myIP(10, 10, 2, 32);
+	Ethernet.begin(myIP);
+
+	const int retryMillis = 3000;
+	while (!mesh.begin())
+	{
+		printf("mesh.begin() failed. Retrying...\n");
+
+		// HardFaults if task stack size is 128 words. 256 words work fine.
+		osDelay(retryMillis);
+	}
+
+	printf("mesh.begin() OK\n");
 
 	// If you'll be making outgoing connections from the Arduino to the rest of
 	// the world, you'll need a gateway set up.
-	IPAddress gwIP(10, 10, 2, 2);
+	IPAddress gwIP(10, 10, 2, 0);
 	Ethernet.set_gateway(gwIP);
 
-	printf("Rf24SimpleMeshClient::setup() OK");
+	printf("Rf24SimpleMeshClient::setup() OK\n");
 	return true;
 }
 
-void Rf24SimpleMeshClient::update()
+void Rf24SimpleMeshClient::loop()
 {
 	if (HAL_GetTick() - meshTimer > 12000)
 	{  //Every 12 seconds, test mesh connectivity
 		meshTimer = HAL_GetTick();
 		if (!mesh.checkConnection())
 		{
+			printf("Trying to renew mesh address...");
 			//refresh the network address
 			if (mesh.renewAddress() == MESH_DEFAULT_ADDRESS)
 			{
+				printf("Mesh address renewed");
 				mesh.begin();
 			}
 		}
@@ -85,33 +109,58 @@ void Rf24SimpleMeshClient::update()
 		// Calling client.available(); or Ethernet.update(); is required during delays
 		// to keep the stack updated
 		reqTimer = HAL_GetTick();
-		while (HAL_GetTick() - reqTimer < 5000 && !client.available())
+		while (HAL_GetTick() - reqTimer < 1000 && !client.available())
 		{
+			osThreadYield();
 		}
-		connect();
+
+		clientConnect();
 	}
 }
 
-void Rf24SimpleMeshClient::connect()
-{
-	printf("connecting\n");
 
-	if (client.connect(host, 80))
+void Rf24SimpleMeshClient::clientConnect()
+{
+	IPAddress host1Ip = IPAddress(109, 120, 203, 163);	// http://109.120.203.163/web/blyad.club/library/litrature/Salvatore,%20R.A/Salvatore,%20R.A%20-%20Icewind%20Dale%20Trilogy%201%20-%20Crystal%20Shard,%20The.txt
+	const char* host1Get = "GET http://artscene.textfiles.com/asciiart/texthistory.txt HTTP/1.1";
+	const char* host1Host = "Host: 208.86.224.90";
+
+	IPAddress host2Ip = IPAddress(208, 86, 224, 90);	// http://artscene.textfiles.com/asciiart/texthistory.txt
+	const char* host2Get = "GET /web/blyad.club/library/litrature/Salvatore,%20R.A/Salvatore,%20R.A%20-%20Icewind%20Dale%20Trilogy%201%20-%20Crystal%20Shard,%20The.txt HTTP/1.1";
+	const char* host2Host = "Host: 109.120.203.163";
+
+	IPAddress hostCurrentIp;
+	const char* hostCurrentGet;
+	const char* hostCurrentHost;
+
+	switch (currentHostIndex)
+	{
+	case 0:
+		hostCurrentIp = host1Ip;
+		hostCurrentGet = host1Get;
+		hostCurrentHost = host1Host;
+		break;
+	case 1:
+		hostCurrentIp = host2Ip;
+		hostCurrentGet = host2Get;
+		hostCurrentHost = host2Host;
+	}
+
+	currentHostIndex++;
+	if(currentHostIndex == 2)
+	{
+		currentHostIndex = 0;
+	}
+
+
+	printf("connecting to %d.%d.%d.%d\n", hostCurrentIp[0], hostCurrentIp[1], hostCurrentIp[2], hostCurrentIp[3]);
+
+	if (client.connect(hostCurrentIp, 80))
 	{
 		printf("connected\n");
 
-		// Make an HTTP request:
-		if (host == ascii)
-		{
-			client.println("GET http://artscene.textfiles.com/asciiart/texthistory.txt HTTP/1.1");
-			client.println("Host: 208.86.224.90");
-		}
-		else
-		{
-			client.println(
-					"GET /web/blyad.club/library/litrature/Salvatore,%20R.A/Salvatore,%20R.A%20-%20Icewind%20Dale%20Trilogy%201%20-%20Crystal%20Shard,%20The.txt HTTP/1.1");
-			client.println("Host: 109.120.203.163");
-		}
+		client.println(hostCurrentGet);
+		client.println(hostCurrentHost);
 
 		client.println("Connection: close");
 		client.println();

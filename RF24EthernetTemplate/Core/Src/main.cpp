@@ -50,14 +50,18 @@ SPI_HandleTypeDef hspi1;
 osThreadId_t mainTaskHandle;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for blinkerTask */
+osThreadId_t blinkerTaskHandle;
+const osThreadAttr_t blinkerTask_attributes = {
+  .name = "blinkerTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 /* USER CODE BEGIN PV */
-RF24 radio(encode_pin(RF24_CE_GPIO_Port, RF24_CE_Pin), encode_pin(RF24_CSN_GPIO_Port, RF24_CSN_Pin));
-RF24Network network(radio);
-RF24Mesh mesh(radio, network);
-RF24EthernetClass RF24Ethernet(radio, network, mesh);
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,6 +69,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 void StartMainTask(void *argument);
+void StartBlinkerTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -164,6 +169,9 @@ int main(void)
   /* Create the thread(s) */
   /* creation of mainTask */
   mainTaskHandle = osThreadNew(StartMainTask, NULL, &mainTask_attributes);
+
+  /* creation of blinkerTask */
+  blinkerTaskHandle = osThreadNew(StartBlinkerTask, NULL, &blinkerTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -327,18 +335,30 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartMainTask */
 void StartMainTask(void *argument)
 {
-	/* USER CODE BEGIN 5 */
+  /* USER CODE BEGIN 5 */
 	Rf24SimpleMeshClient simpleMeshClient(&hspi1);
-	simpleMeshClient.setup();
+	simpleMeshClient.taskMethod();
+	printf("MainTask finished");
+  /* USER CODE END 5 */
+}
 
+/* USER CODE BEGIN Header_StartBlinkerTask */
+/**
+* @brief Function implementing the blinkerTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartBlinkerTask */
+void StartBlinkerTask(void *argument)
+{
+	/* USER CODE BEGIN StartBlinkerTask */
+	/* Infinite loop */
 	for (;;)
 	{
-		simpleMeshClient.update();
 		HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
-		RF24Ethernet.update();
-		osThreadYield();
+		osDelay(1000);
 	}
-	/* USER CODE END 5 */
+	/* USER CODE END StartBlinkerTask */
 }
 
 /**
