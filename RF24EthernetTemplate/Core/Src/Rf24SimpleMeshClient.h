@@ -32,6 +32,7 @@ public:
 private:
 	RF24_SPI spi;
 	EthernetClient client;
+	EthernetServer server = EthernetServer(1000);
 
 	uint32_t counter = 0;
 	uint32_t reqTimer = 0;
@@ -41,7 +42,9 @@ private:
 	IPAddress ascii = IPAddress(208, 86, 224, 90);      //http://artscene.textfiles.com/asciiart/texthistory.txt
 	IPAddress host = ascii;
 
-	void connect();
+	void clientConnect();
+	void clientLoop();
+	void serverLoop();
 };
 
 #endif /* INC_RF24SIMPLEMESHCLIENT_H_ */
