@@ -5,4 +5,13 @@
 # chmod +x _install_rf24.sh
 
 ./_install_rf24.sh
+./_install_boost.sh
+./_install_spdlog.sh
 
+cd RF24GatewayController
+
+cmake ..
+
+make
+
+cd ..
