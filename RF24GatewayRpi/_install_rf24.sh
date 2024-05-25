@@ -60,7 +60,7 @@ else
 fi
 
 if [ -n "$INSTALL_ALL_FORCE" ]; then
-    echo "Skipping interactive options"
+    echo "Skipping interactive option"
 else
     for index in "${!REPOS[@]}"
 	do

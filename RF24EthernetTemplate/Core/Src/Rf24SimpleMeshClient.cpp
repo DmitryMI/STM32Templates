@@ -83,11 +83,11 @@ void Rf24SimpleMeshClient::loop()
 		meshTimer = HAL_GetTick();
 		if (!mesh.checkConnection())
 		{
-			printf("Trying to renew mesh address...");
+			printf("Trying to renew mesh address...\n");
 			//refresh the network address
 			if (mesh.renewAddress() == MESH_DEFAULT_ADDRESS)
 			{
-				printf("Mesh address renewed");
+				printf("Mesh address renewed\n");
 				mesh.begin();
 			}
 		}
