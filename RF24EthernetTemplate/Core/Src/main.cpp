@@ -356,7 +356,7 @@ void StartBlinkerTask(void *argument)
 	for (;;)
 	{
 		HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
-		osDelay(1000);
+		osDelay(100);
 	}
 	/* USER CODE END StartBlinkerTask */
 }

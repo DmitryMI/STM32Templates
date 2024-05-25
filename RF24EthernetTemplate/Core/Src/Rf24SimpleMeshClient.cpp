@@ -32,7 +32,11 @@ void Rf24SimpleMeshClient::taskMethod()
 		return;
 	}
 
-	loop();
+	while(true)
+	{
+		loop();
+		osThreadYield();
+	}
 }
 
 bool Rf24SimpleMeshClient::setup()

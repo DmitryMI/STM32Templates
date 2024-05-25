@@ -44,12 +44,12 @@ fi
 if ! command -v git &> /dev/null
 then
     echo "Installing git from apt-get"
-    sudo apt-get install git
+    sudo apt-get -y install git
 fi
 if ! command -v cmake &> /dev/null
 then
     echo "Installing cmake from apt-get"
-    sudo apt-get install cmake
+    sudo apt-get -y install cmake
 fi
 
 read -p "Choose versions to install (Default: Install latest code from master) [y/N]? " CHOOSE_VERSION
@@ -103,7 +103,7 @@ then
 	fi
     
     case ${answer^^} in
-        Y ) sudo apt-get install libncurses5-dev;;
+        Y ) sudo apt-get -y install libncurses5-dev;;
         * ) SUGGESTED_EXAMPLE[3]=RF24GatewayNode;;
     esac
     echo ""

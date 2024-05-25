@@ -2,7 +2,8 @@
 
 uint32_t rf24_get_time_us()
 {
-    return 1000 * HAL_GetTick() + 1000 - (SysTick->VAL / (SystemCoreClock / 1000000));
+	uint32_t time = 1000 * HAL_GetTick() + 1000 - (SysTick->VAL / (SystemCoreClock / 1000000));
+	return time;
 };
 
 void __usleep(int32_t usecs)
