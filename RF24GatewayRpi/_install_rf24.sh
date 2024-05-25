@@ -53,8 +53,10 @@ then
 fi
 
 if [ -n "$INSTALL_ALL_FORCE" ]; then
+	echo "TEST"
 	read -p "Choose versions to install (Default: Install latest code from master) [y/N]? " CHOOSE_VERSION
 else
+	echo "Skipping interactive option"
 	CHOOSE_VERSION=Y
 fi
 
