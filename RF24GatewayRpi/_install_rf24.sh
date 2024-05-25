@@ -52,7 +52,11 @@ then
     sudo apt-get -y install cmake
 fi
 
-read -p "Choose versions to install (Default: Install latest code from master) [y/N]? " CHOOSE_VERSION
+if [ -n "$INSTALL_ALL_FORCE" ]; then
+	read -p "Choose versions to install (Default: Install latest code from master) [y/N]? " CHOOSE_VERSION
+else
+	CHOOSE_VERSION=Y
+fi
 
 if [ -n "$INSTALL_ALL_FORCE" ]; then
     echo "Skipping interactive options"
