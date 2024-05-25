@@ -10,7 +10,7 @@
 
 cd RF24GatewayController
 
-cmake ..
+cmake .
 
 make
 
