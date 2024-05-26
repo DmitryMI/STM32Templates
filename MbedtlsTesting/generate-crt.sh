@@ -1,3 +1,5 @@
+set -e
+
 # Generate a new ECDSA private key
 openssl ecparam -genkey -name prime256v1 -out ca-prk.pem
 
@@ -5,7 +7,7 @@ openssl ecparam -genkey -name prime256v1 -out ca-prk.pem
 openssl req -new -sha256 -key ca-prk.pem -out ca-csr.pem -subj "/C=US/ST=California/L=Los Angeles/O=TLS Testing"
 
 # Sign the CSR with the ECDSA private key to create the certificate
-openssl x509 -req -signkey ca-prk.pem -in ca-prk.pem -out ca-cer.pem -days 3650
+openssl x509 -req -signkey ca-prk.pem -in ca-csr.pem -out ca-cer.pem -days 3650
 
 # Generate a new ECDSA private key
 openssl ecparam -genkey -name prime256v1 -out server-prk.pem
