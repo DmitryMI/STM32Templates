@@ -351,14 +351,14 @@ void StartMainTask(void *argument)
 /* USER CODE END Header_StartBlinkerTask */
 void StartBlinkerTask(void *argument)
 {
-	/* USER CODE BEGIN StartBlinkerTask */
+  /* USER CODE BEGIN StartBlinkerTask */
 	/* Infinite loop */
 	for (;;)
 	{
 		HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
 		osDelay(100);
 	}
-	/* USER CODE END StartBlinkerTask */
+  /* USER CODE END StartBlinkerTask */
 }
 
 /**

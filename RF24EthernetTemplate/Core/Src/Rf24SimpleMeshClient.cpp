@@ -7,6 +7,7 @@
 
 #include "Rf24SimpleMeshClient.h"
 #include "cmsis_os.h"
+#include "mbedtls.h"
 
 RF24 radio(encode_pin(RF24_CE_GPIO_Port, RF24_CE_Pin), encode_pin(RF24_CSN_GPIO_Port, RF24_CSN_Pin));
 RF24Network network(radio);
@@ -27,12 +28,31 @@ Rf24SimpleMeshClient::~Rf24SimpleMeshClient()
 
 void Rf24SimpleMeshClient::taskMethod()
 {
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// TRUST CHAIN CONFIGURATION
+
+	mbedtls_x509_crt x509_certificate;
+	mbedtls_x509_crt_init(&x509_certificate);
+
+	int mbedtls_status;
+
+	if ((mbedtls_status = mbedtls_x509_crt_parse(&x509_certificate, (const unsigned char*)CertificateAuthority, strlen(CertificateAuthority) + 1)) != 0)
+	{
+		printf("[!] mbedtls_x509_crt_parse_file failed to parse CA certificate (-0x%X)\n", -mbedtls_status);
+		return;
+	}
+
+	printf("Certificate Authority parsing OK.");
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	if (!setup())
 	{
 		return;
 	}
 
-	while(true)
+	while (true)
 	{
 		loop();
 		osThreadYield();
@@ -122,20 +142,20 @@ void Rf24SimpleMeshClient::loop()
 	}
 }
 
-
 void Rf24SimpleMeshClient::clientConnect()
 {
-	IPAddress host1Ip = IPAddress(109, 120, 203, 163);	// http://109.120.203.163/web/blyad.club/library/litrature/Salvatore,%20R.A/Salvatore,%20R.A%20-%20Icewind%20Dale%20Trilogy%201%20-%20Crystal%20Shard,%20The.txt
-	const char* host1Get = "GET http://artscene.textfiles.com/asciiart/texthistory.txt HTTP/1.1";
-	const char* host1Host = "Host: 208.86.224.90";
+	IPAddress host1Ip = IPAddress(109, 120, 203, 163);// http://109.120.203.163/web/blyad.club/library/litrature/Salvatore,%20R.A/Salvatore,%20R.A%20-%20Icewind%20Dale%20Trilogy%201%20-%20Crystal%20Shard,%20The.txt
+	const char *host1Get = "GET http://artscene.textfiles.com/asciiart/texthistory.txt HTTP/1.1";
+	const char *host1Host = "Host: 208.86.224.90";
 
 	IPAddress host2Ip = IPAddress(208, 86, 224, 90);	// http://artscene.textfiles.com/asciiart/texthistory.txt
-	const char* host2Get = "GET /web/blyad.club/library/litrature/Salvatore,%20R.A/Salvatore,%20R.A%20-%20Icewind%20Dale%20Trilogy%201%20-%20Crystal%20Shard,%20The.txt HTTP/1.1";
-	const char* host2Host = "Host: 109.120.203.163";
+	const char *host2Get =
+			"GET /web/blyad.club/library/litrature/Salvatore,%20R.A/Salvatore,%20R.A%20-%20Icewind%20Dale%20Trilogy%201%20-%20Crystal%20Shard,%20The.txt HTTP/1.1";
+	const char *host2Host = "Host: 109.120.203.163";
 
 	IPAddress hostCurrentIp;
-	const char* hostCurrentGet;
-	const char* hostCurrentHost;
+	const char *hostCurrentGet;
+	const char *hostCurrentHost;
 
 	switch (currentHostIndex)
 	{
@@ -151,11 +171,10 @@ void Rf24SimpleMeshClient::clientConnect()
 	}
 
 	currentHostIndex++;
-	if(currentHostIndex == 2)
+	if (currentHostIndex == 2)
 	{
 		currentHostIndex = 0;
 	}
-
 
 	printf("connecting to %d.%d.%d.%d\n", hostCurrentIp[0], hostCurrentIp[1], hostCurrentIp[2], hostCurrentIp[3]);
 

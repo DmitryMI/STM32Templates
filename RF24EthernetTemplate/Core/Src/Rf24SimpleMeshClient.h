@@ -34,6 +34,20 @@ private:
 
 	int currentHostIndex = 0;
 
+	// EOLs are required! Parsing fails without them.
+	static constexpr const char *CertificateAuthority =
+			"-----BEGIN CERTIFICATE-----\n"
+			"MIIBlzCCAT0CFAgW+gEfvYrwSYjElMJLxDMU/0XvMAoGCCqGSM49BAMCME4xCzAJ\n"
+			"BgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRQwEgYDVQQHDAtMb3MgQW5n\n"
+			"ZWxlczEUMBIGA1UECgwLVExTIFRlc3RpbmcwHhcNMjQwNTI2MTMyMTE4WhcNMzQw\n"
+			"NTI0MTMyMTE4WjBOMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEU\n"
+			"MBIGA1UEBwwLTG9zIEFuZ2VsZXMxFDASBgNVBAoMC1RMUyBUZXN0aW5nMFkwEwYH\n"
+			"KoZIzj0CAQYIKoZIzj0DAQcDQgAETitrDALqUZGTCYCjikqjSk4a2o8/aPAcocmu\n"
+			"YF0OGQnQXYMpiQ289bWewzJ7LEEsToGfyA2SHW3qvCcmZkNh0TAKBggqhkjOPQQD\n"
+			"AgNIADBFAiEAvOE+0ES4Tyu7geZ/7rl/hDE9C9rj1qwWZUpPEWowbx8CIByrs6F4\n"
+			"Q1jJj8xPOg9sgc55XI8v/ZAfnzFD4oQamqa/\n"
+			"-----END CERTIFICATE-----";
+
 	bool setup();
 	void loop();
 	void clientConnect();
