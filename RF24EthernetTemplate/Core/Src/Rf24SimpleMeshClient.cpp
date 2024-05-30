@@ -37,7 +37,7 @@ void Rf24SimpleMeshClient::taskMethod()
 
 	int mbedtls_status;
 
-	if ((mbedtls_status = mbedtls_x509_crt_parse(&x509_certificate, (const unsigned char*)CertificateAuthority, strlen(CertificateAuthority) + 1)) != 0)
+	if ((mbedtls_status = mbedtls_x509_crt_parse(&x509_certificate, (const unsigned char*) CertificateAuthority, strlen(CertificateAuthority) + 1)) != 0)
 	{
 		printf("[!] mbedtls_x509_crt_parse_file failed to parse CA certificate (-0x%X)\n", -mbedtls_status);
 		return;
@@ -45,6 +45,22 @@ void Rf24SimpleMeshClient::taskMethod()
 
 	printf("Certificate Authority parsing OK.");
 
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// ENTROPY/RANDOMNESS SOURCE AND PSEUDORANDOM NUMBER GENERATOR (PRNG) CONFIGURATION
+	/*
+	mbedtls_entropy_context entropy_context;
+	mbedtls_entropy_init(&entropy_context);
+
+	mbedtls_ctr_drbg_context drbg_context;
+	mbedtls_ctr_drbg_init(&drbg_context);
+
+	if ((mbedtls_status = mbedtls_ctr_drbg_seed(&drbg_context, mbedtls_entropy_func, &entropy_context, nullptr, 0)) != 0)
+	{
+		printf("[!] mbedtls_ctr_drbg_seed (-0x%X)\n", -mbedtls_status);
+		// goto quite_entropy;
+	}
+	*/
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	if (!setup())
