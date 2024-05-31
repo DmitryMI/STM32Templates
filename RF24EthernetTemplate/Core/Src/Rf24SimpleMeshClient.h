@@ -26,7 +26,7 @@ public:
 
 private:
 	RF24_SPI spi;
-	EthernetClient client;
+	EthernetClient rf24Client;
 
 	uint32_t counter = 0;
 	uint32_t reqTimer = 0;
@@ -48,9 +48,19 @@ private:
 			"Q1jJj8xPOg9sgc55XI8v/ZAfnzFD4oQamqa/\n"
 			"-----END CERTIFICATE-----";
 
-	bool setup();
-	void loop();
-	void clientConnect();
+	bool setupRf24();
+	void updateMesh();
+
+	static int entropySourceCallback(void *data, unsigned char *output, size_t len, size_t *olen);
+	static int mbedtlsNetSendCallback( void *ctx, const unsigned char *buf, size_t len );
+	static int mbedtlsNetRecvCallback( void *ctx, unsigned char *buf, size_t len );
+	static int mbedtlsNetRecvTimeoutCallback( void *ctx, unsigned char *buf, size_t len,
+            uint32_t timeout );
+	static void* mbedtlsCallockCallback( size_t num, size_t size);
+	int mbedtlsNetSendImpl(const unsigned char *buf, size_t len );
+	int mbedtlsNetRecvImpl(unsigned char *buf, size_t len );
+	int mbedtlsNetRecvTimeoutImpl(unsigned char *buf, size_t len,
+	                      uint32_t timeout);
 };
 
 #endif /* INC_RF24SIMPLEMESHCLIENT_H_ */

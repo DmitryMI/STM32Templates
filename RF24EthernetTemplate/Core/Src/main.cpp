@@ -46,11 +46,13 @@
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 
+TIM_HandleTypeDef htim2;
+
 /* Definitions for mainTask */
 osThreadId_t mainTaskHandle;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
-  .stack_size = 256 * 4,
+  .stack_size = 2048 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for blinkerTask */
@@ -68,6 +70,7 @@ const osThreadAttr_t blinkerTask_attributes = {
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_TIM2_Init(void);
 void StartMainTask(void *argument);
 void StartBlinkerTask(void *argument);
 
@@ -141,6 +144,7 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   MX_MBEDTLS_Init();
+  MX_TIM2_Init();
   /* Call PreOsInit function */
   MX_MBEDTLS_Init();
   /* USER CODE BEGIN 2 */
@@ -277,6 +281,64 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_IC_InitTypeDef sConfigIC = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 4294967295;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -289,6 +351,7 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
@@ -339,6 +402,12 @@ void StartMainTask(void *argument)
 	Rf24SimpleMeshClient simpleMeshClient(&hspi1);
 	simpleMeshClient.taskMethod();
 	printf("MainTask finished");
+
+	vTaskDelete(NULL);
+	while(true)
+	{
+		osThreadYield();
+	}
   /* USER CODE END 5 */
 }
 
@@ -356,7 +425,9 @@ void StartBlinkerTask(void *argument)
 	for (;;)
 	{
 		HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
-		osDelay(100);
+		uint32_t stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+		printf("[BlinkerTask] Stack high water mark: %lu\n", stackHighWaterMark);
+		osDelay(250);
 	}
   /* USER CODE END StartBlinkerTask */
 }
