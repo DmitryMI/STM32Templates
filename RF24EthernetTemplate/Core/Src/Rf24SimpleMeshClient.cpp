@@ -45,10 +45,10 @@ int Rf24SimpleMeshClient::entropySourceCallback(void *data, unsigned char *outpu
 #endif
 }
 
-void* Rf24SimpleMeshClient::mbedtlsCallockCallback( size_t num, size_t size)
+void* Rf24SimpleMeshClient::mbedtlsCallockCallback(size_t num, size_t size)
 {
-	void* mem = pvPortMalloc(num * size);
-	if(mem == nullptr)
+	void *mem = pvPortMalloc(num * size);
+	if (mem == nullptr)
 	{
 		return nullptr;
 	}
@@ -272,6 +272,102 @@ void Rf24SimpleMeshClient::taskMethod()
 	}
 	stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
 	printf("[Rf24SimpleMeshClient] Stack high water mark: %lu\n", stackHighWaterMark);
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// EXCHANGE SOME MESSAGES
+
+	static const unsigned char write_buffer[] = "Hello world!\n";
+	static const auto write_buffer_length = sizeof(write_buffer) - 1; // last byte is the null terminator
+
+	do
+	{
+		mbedtls_status = mbedtls_ssl_write(&ssl_context, write_buffer + mbedtls_status, write_buffer_length - mbedtls_status);
+
+		if (mbedtls_status == 0)
+		{
+			break;
+		}
+
+		if (mbedtls_status < 0)
+		{
+			switch (mbedtls_status)
+			{
+			case MBEDTLS_ERR_SSL_WANT_READ:
+			case MBEDTLS_ERR_SSL_WANT_WRITE:
+			case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
+			case MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS:
+			{
+				continue;
+			}
+			default:
+			{
+				printf("[Rf24SimpleMeshClient] [!] mbedtls_ssl_write (-0x%X)\n", -mbedtls_status);
+				goto quit_close_context;
+			}
+			}
+		}
+
+		printf("[Rf24SimpleMeshClient] [*] %d bytes sent to the server\n", mbedtls_status);
+	}
+	while (true);
+
+	do
+	{
+		unsigned char read_buffer[64];
+		static const auto read_buffer_length = sizeof(read_buffer);
+
+		memset(read_buffer, 0, sizeof(read_buffer));
+
+		mbedtls_status = mbedtls_ssl_read(&ssl_context, read_buffer, read_buffer_length);
+
+		if (mbedtls_status == 0)
+		{
+			break;
+		}
+
+		if (mbedtls_status < 0)
+		{
+			switch (mbedtls_status)
+			{
+			case MBEDTLS_ERR_SSL_WANT_READ:
+			case MBEDTLS_ERR_SSL_WANT_WRITE:
+			case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
+			case MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS:
+			{
+				continue;
+			}
+			default:
+			{
+				printf("[Rf24SimpleMeshClient] [!] mbedtls_ssl_read (-0x%X)\n", -mbedtls_status);
+				goto quit_close_context;
+			}
+			}
+		}
+
+		auto line_terminator_received = false;
+
+		for (auto i = 0; i < mbedtls_status; ++i)
+		{
+			if (read_buffer[i] == '\n')
+			{
+				line_terminator_received = true;
+				break;
+			}
+		}
+
+		if (line_terminator_received)
+		{
+			if (mbedtls_status > 1)
+			{
+				printf("[Rf24SimpleMeshClient] [*] Received chunk '%.*s'\n", mbedtls_status - 1, reinterpret_cast<char*>(read_buffer));
+			}
+			break;
+		}
+
+		printf("[Rf24SimpleMeshClient] [*] Received chunk '%.*s'\n", mbedtls_status, reinterpret_cast<char*>(read_buffer));
+	}
+	while (true);
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

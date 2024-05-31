@@ -426,7 +426,7 @@ void StartBlinkerTask(void *argument)
 	{
 		HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
 		uint32_t stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
-		printf("[BlinkerTask] Stack high water mark: %lu\n", stackHighWaterMark);
+		// printf("[BlinkerTask] Stack high water mark: %lu\n", stackHighWaterMark);
 		osDelay(250);
 	}
   /* USER CODE END StartBlinkerTask */
