@@ -9,6 +9,7 @@
 #include "cmsis_os.h"
 #include "mbedtls.h"
 #include "net_sockets.h"
+#include "platform.h"
 
 RF24 radio(encode_pin(RF24_CE_GPIO_Port, RF24_CE_Pin), encode_pin(RF24_CSN_GPIO_Port, RF24_CSN_Pin));
 RF24Network network(radio);
@@ -42,6 +43,18 @@ int Rf24SimpleMeshClient::entropySourceCallback(void *data, unsigned char *outpu
 	return 0;
 
 #endif
+}
+
+void* Rf24SimpleMeshClient::mbedtlsCallockCallback( size_t num, size_t size)
+{
+	void* mem = pvPortMalloc(num * size);
+	if(mem == nullptr)
+	{
+		return nullptr;
+	}
+
+	memset(mem, 0, num * size);
+	return mem;
 }
 
 int Rf24SimpleMeshClient::mbedtlsNetSendCallback(void *ctx, const unsigned char *buf, size_t len)
@@ -115,6 +128,8 @@ void Rf24SimpleMeshClient::taskMethod()
 	const auto port = 1234;
 
 	uint32_t stackHighWaterMark;
+
+	mbedtls_platform_set_calloc_free(&Rf24SimpleMeshClient::mbedtlsCallockCallback, vPortFree);
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -225,6 +240,8 @@ void Rf24SimpleMeshClient::taskMethod()
 	}
 
 	printf("[Rf24SimpleMeshClient] RF24 TCP/IP connection OK\n");
+	stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+	printf("[Rf24SimpleMeshClient] Stack high water mark: %lu\n", stackHighWaterMark);
 
 	mbedtls_ssl_set_bio(&ssl_context, this, &Rf24SimpleMeshClient::mbedtlsNetSendCallback, &Rf24SimpleMeshClient::mbedtlsNetRecvCallback,
 			&Rf24SimpleMeshClient::mbedtlsNetRecvTimeoutCallback);
@@ -235,6 +252,8 @@ void Rf24SimpleMeshClient::taskMethod()
 		printf("[Rf24SimpleMeshClient] [!] mbedtls_ssl_set_hostname (-0x%X)\n", -mbedtls_status);
 		goto quit_close_context;
 	}
+	stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+	printf("[Rf24SimpleMeshClient] Stack high water mark: %lu\n", stackHighWaterMark);
 
 	while ((mbedtls_status = mbedtls_ssl_handshake(&ssl_context)) != 0)
 	{
@@ -243,6 +262,7 @@ void Rf24SimpleMeshClient::taskMethod()
 			printf("[Rf24SimpleMeshClient] [!] mbedtls_ssl_handshake (-0x%X)\n", -mbedtls_status);
 			goto quit_close_context;
 		}
+		osThreadYield();
 	}
 
 	if ((mbedtls_status = mbedtls_ssl_get_verify_result(&ssl_context)) != 0)
@@ -250,6 +270,8 @@ void Rf24SimpleMeshClient::taskMethod()
 		printf("[Rf24SimpleMeshClient] [!] mbedtls_ssl_get_verify_result (-0x%X)\n", -mbedtls_status);
 		goto quit_close_context;
 	}
+	stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+	printf("[Rf24SimpleMeshClient] Stack high water mark: %lu\n", stackHighWaterMark);
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

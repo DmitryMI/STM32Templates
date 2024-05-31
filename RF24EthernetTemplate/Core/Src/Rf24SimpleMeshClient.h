@@ -56,6 +56,7 @@ private:
 	static int mbedtlsNetRecvCallback( void *ctx, unsigned char *buf, size_t len );
 	static int mbedtlsNetRecvTimeoutCallback( void *ctx, unsigned char *buf, size_t len,
             uint32_t timeout );
+	static void* mbedtlsCallockCallback( size_t num, size_t size);
 	int mbedtlsNetSendImpl(const unsigned char *buf, size_t len );
 	int mbedtlsNetRecvImpl(unsigned char *buf, size_t len );
 	int mbedtlsNetRecvTimeoutImpl(unsigned char *buf, size_t len,

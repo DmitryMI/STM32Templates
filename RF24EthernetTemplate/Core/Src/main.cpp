@@ -52,7 +52,7 @@ TIM_HandleTypeDef htim2;
 osThreadId_t mainTaskHandle;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
-  .stack_size = 1024 * 4,
+  .stack_size = 2048 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for blinkerTask */
@@ -427,7 +427,7 @@ void StartBlinkerTask(void *argument)
 		HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
 		uint32_t stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
 		printf("[BlinkerTask] Stack high water mark: %lu\n", stackHighWaterMark);
-		osDelay(100);
+		osDelay(250);
 	}
   /* USER CODE END StartBlinkerTask */
 }
