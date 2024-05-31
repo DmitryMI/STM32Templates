@@ -16,16 +16,9 @@ sock.listen(1)
 
 while True:
     # Wait for a connection
-    print('waiting for a connection')
-    connection, client_address = sock.accept()
-    try:
-        print('connection from', client_address)
-
-        # Receive the data in small chunks and retransmit it
+    conn, addr = s.accept()
+    with conn:
         while True:
-            data = random.choice(string.ascii_letters)
-            connection.sendall(bytes(data, 'utf-8'))
-
-    finally:
-        # Clean up the connection
-        connection.close()
+            data = conn.recv(1024)
+            print(data)
+            conn, addr = s.accept()
