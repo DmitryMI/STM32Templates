@@ -123,8 +123,8 @@ int Rf24SimpleMeshClient::mbedtlsNetRecvTimeoutImpl(unsigned char *buf, size_t l
 
 void Rf24SimpleMeshClient::taskMethod()
 {
-	const auto hostAddress = IPAddress(127, 0, 0, 1);
-	const auto hostName = "127.0.0.1";
+	const auto hostAddress = IPAddress(192, 168, 0, 6);
+	const auto hostName = "192.168.0.6";
 	const auto port = 1234;
 
 	uint32_t stackHighWaterMark;
@@ -235,7 +235,7 @@ void Rf24SimpleMeshClient::taskMethod()
 
 	if (!rf24Client.connect(hostAddress, port))
 	{
-		printf("[Rf24SimpleMeshClient] [!] RF24 TCP/IP connection failed.\n");
+		printf("[Rf24SimpleMeshClient] [!] RF24 TCP connection failed.\n");
 		goto quit_ssl_context;
 	}
 

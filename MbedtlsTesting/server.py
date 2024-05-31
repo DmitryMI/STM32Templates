@@ -24,20 +24,23 @@ def main():
     server_socket.listen(1)
     logging.info(f'Listening on {server_host}:{server_port}')
     while True:
-        client_socket, client_address = server_socket.accept()
-        with client_socket:
-            with tls_context.wrap_socket(client_socket, server_side=True) as client_tls_socket:
-                tls_cipher, tls_version, _ = client_tls_socket.cipher()
-                client_host, client_port = client_address
-                logging.info(f'Accepted connection from {client_host}:{client_port} ({tls_version} {tls_cipher})')
-                while True:
-                    message = client_tls_socket.recv(64)
-                    if message and message[-1] == 10:
-                        logging.info(f'Received chunk "{message[:-1].decode("utf-8")}"')
-                        break
-                    logging.info(f'Received chunk "{message.decode("utf-8")}"')
-                client_tls_socket.sendall('Bye world!\n'.encode('utf-8'))
-                logging.info(f'Data sent to the client')
+        try:
+            client_socket, client_address = server_socket.accept()
+            with client_socket:
+                with tls_context.wrap_socket(client_socket, server_side=True) as client_tls_socket:
+                    tls_cipher, tls_version, _ = client_tls_socket.cipher()
+                    client_host, client_port = client_address
+                    logging.info(f'Accepted connection from {client_host}:{client_port} ({tls_version} {tls_cipher})')
+                    while True:
+                        message = client_tls_socket.recv(64)
+                        if message and message[-1] == 10:
+                            logging.info(f'Received chunk "{message[:-1].decode("utf-8")}"')
+                            break
+                        logging.info(f'Received chunk "{message.decode("utf-8")}"')
+                    client_tls_socket.sendall('Bye world!\n'.encode('utf-8'))
+                    logging.info(f'Data sent to the client')
+        except err as Exception:
+            logging.error(err)
 
 
 if __name__ == '__main__':
