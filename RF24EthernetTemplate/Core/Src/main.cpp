@@ -52,7 +52,7 @@ TIM_HandleTypeDef htim2;
 osThreadId_t mainTaskHandle;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
-  .stack_size = 256 * 4,
+  .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for blinkerTask */
@@ -221,12 +221,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 160;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV8;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -236,12 +231,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
@@ -407,6 +402,12 @@ void StartMainTask(void *argument)
 	Rf24SimpleMeshClient simpleMeshClient(&hspi1);
 	simpleMeshClient.taskMethod();
 	printf("MainTask finished");
+
+	vTaskDelete(NULL);
+	while(true)
+	{
+		osThreadYield();
+	}
   /* USER CODE END 5 */
 }
 
@@ -424,6 +425,8 @@ void StartBlinkerTask(void *argument)
 	for (;;)
 	{
 		HAL_GPIO_TogglePin(BLACKPILL_USER_LED_GPIO_Port, BLACKPILL_USER_LED_Pin);
+		uint32_t stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+		printf("[BlinkerTask] Stack high water mark: %lu\n", stackHighWaterMark);
 		osDelay(100);
 	}
   /* USER CODE END StartBlinkerTask */
