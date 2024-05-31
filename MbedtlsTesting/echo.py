@@ -21,4 +21,4 @@ while True:
         while True:
             data = conn.recv(1024)
             print(data)
-            conn, addr = sock.accept()
+            # conn, addr = sock.accept()

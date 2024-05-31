@@ -12,7 +12,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 # Allow only TLS 1.2
 tls_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1_2)
 # Allow only these cipher suites
-tls_context.set_ciphers('ECDHE-RSA-AES128-GCM-SHA256')
+# tls_context.set_ciphers('ECDHE-RSA-AES128-GCM-SHA256')
+tls_context.set_ciphers('ECDHE-ECDSA-AES128-GCM-SHA256')
 # Load server certificate and private key
 tls_context.load_cert_chain('server-cer.pem', keyfile='server-prk.pem')
 
