@@ -16,9 +16,9 @@ sock.listen(1)
 
 while True:
     # Wait for a connection
-    conn, addr = s.accept()
+    conn, addr = sock.accept()
     with conn:
         while True:
             data = conn.recv(1024)
             print(data)
-            conn, addr = s.accept()
+            conn, addr = sock.accept()
