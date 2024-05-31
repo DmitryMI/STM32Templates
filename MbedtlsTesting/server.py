@@ -39,7 +39,7 @@ def main():
                         logging.info(f'Received chunk "{message.decode("utf-8")}"')
                     client_tls_socket.sendall('Bye world!\n'.encode('utf-8'))
                     logging.info(f'Data sent to the client')
-        except: Exception as err:
+        except Exception as err:
             logging.error(err)
 
 
