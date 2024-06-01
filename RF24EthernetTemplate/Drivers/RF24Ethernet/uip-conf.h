@@ -164,7 +164,8 @@
  * When increasing the uip buffer size, this value should be increased, or
  * the window may be reopened while the requested data is still being received, hindering traffic flow.
  */
-#define UIP_WINDOW_REOPEN_DELAY 3550
+// #define UIP_WINDOW_REOPEN_DELAY 3550
+#define UIP_WINDOW_REOPEN_DELAY 10000
 
 /** @} */
 /** @} */

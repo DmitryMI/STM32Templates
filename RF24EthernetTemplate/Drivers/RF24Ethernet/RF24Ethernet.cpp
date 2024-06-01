@@ -71,7 +71,7 @@ void RF24EthernetClass::setMac(uint16_t address)
     }
 
     const uint8_t mac[6] = {0x52, 0x46, 0x32, 0x34, (uint8_t)address, (uint8_t)(address >> 8)};
-    // printf("MAC: %o %d\n", address, mac[0]);
+    // ::printf("MAC: %o %d\n", address, mac[0]);
 
 #if defined(RF24_TAP)
     uip_seteth_addr(mac);
@@ -321,18 +321,20 @@ void RF24EthernetClass::network_send()
         ok = RF24Ethernet.network.write(headerOut, uip_buf, uip_len);
 #if defined ETH_DEBUG_L1 || defined ETH_DEBUG_L2
         if (!ok) {
-            Serial.println();
-            Serial.print(millis());
-            Serial.println(F(" *** RF24Ethernet Network Write Fail ***"));
+            //Serial.println();
+            //Serial.print(millis());
+            //Serial.println(F(" *** RF24Ethernet Network Write Fail ***"));
+            ::printf("\n%ld *** RF24Ethernet Network Write Fail ***\n", millis());
         }
 #endif
     }
 
 #if defined ETH_DEBUG_L2
     if (ok) {
-        Serial.println();
-        Serial.print(millis());
-        Serial.println(F(" RF24Ethernet Network Write OK"));
+        // Serial.println();
+        // Serial.print(millis());
+        // Serial.println(F(" RF24Ethernet Network Write OK"));
+        ::printf("\n%ld RF24Ethernet Network Write OK\n", millis());
     }
 #endif
 }

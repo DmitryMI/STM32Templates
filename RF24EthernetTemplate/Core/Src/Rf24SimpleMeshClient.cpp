@@ -75,50 +75,63 @@ int Rf24SimpleMeshClient::mbedtlsNetRecvTimeoutCallback(void *ctx, unsigned char
 	return client->mbedtlsNetRecvTimeoutImpl(buf, len, timeout);
 }
 
+void Rf24SimpleMeshClient::mbedtlsDebugPrintCallback(void *ctx, int level, const char *file, int line, const char *str)
+{
+	const char *p, *basename;
+	(void) ctx;
+
+	/* Extract basename from file */
+	for (p = basename = file; *p != '\0'; p++)
+	{
+		if (*p == '/' || *p == '\\')
+		{
+			basename = p + 1;
+		}
+	}
+
+	printf("[Rf24SimpleMeshClient] %s:%04d: |%d| %s", basename, line, level, str);
+}
+
 int Rf24SimpleMeshClient::mbedtlsNetSendImpl(const unsigned char *buf, size_t len)
 {
-	if (rf24Client.connected())
-	{
-		return rf24Client.write(buf, len);
-	}
-	return -1;
+	int res = rf24Client.write(buf, len);
+	updateMesh();
+	RF24Ethernet.update();
+	return res;
 }
 
 int Rf24SimpleMeshClient::mbedtlsNetRecvImpl(unsigned char *buf, size_t len)
 {
-	if (!rf24Client.connected())
+	size_t leftToRead = len;
+	while (leftToRead > 0)
 	{
-		return -1;
+		updateMesh();
+		size_t available = (size_t) rf24Client.available();
+		if (available == 0)
+		{
+			osThreadYield();
+			continue;
+		}
+
+		int read;
+		if (available < leftToRead)
+		{
+			read = rf24Client.read(buf, available);
+		}
+		else
+		{
+			read = rf24Client.read(buf, leftToRead);
+		}
+
+		leftToRead -= read;
 	}
 
-	return rf24Client.read(buf, len);
+	return len - leftToRead;
 }
 
 int Rf24SimpleMeshClient::mbedtlsNetRecvTimeoutImpl(unsigned char *buf, size_t len, uint32_t timeout)
 {
-	uint32_t timeStart = HAL_GetTick();
-	uint32_t timeEnd = timeStart + timeout;
-	uint32_t bufPos;
-	while (HAL_GetTick() < timeEnd)
-	{
-		updateMesh();
-		uint32_t bytesAvailable = rf24Client.available();
-		for (uint32_t i = 0; i < bytesAvailable && bufPos < len; i++)
-		{
-			int b = rf24Client.read();
-			if (b < 0)
-			{
-				return b;
-			}
-
-			buf[bufPos] = (uint8_t) b;
-			bufPos++;
-		}
-
-		osThreadYield();
-	}
-
-	return bufPos;
+	return -1;
 }
 
 void Rf24SimpleMeshClient::taskMethod()
@@ -127,10 +140,62 @@ void Rf24SimpleMeshClient::taskMethod()
 	const auto hostName = "192.168.0.6";
 	const auto port = 1234;
 
+	if (!setupRf24())
+	{
+		return;
+	}
+
+	bool tcpConnectionOk;
+	tcpConnectionOk = false;
+	for (int i = 0; i < 5; i++)
+	{
+		if (rf24Client.connect(hostAddress, port))
+		{
+			tcpConnectionOk = true;
+			break;
+		}
+
+		printf("[Rf24SimpleMeshClient] [!] RF24 TCP connection failed. Retrying...\n");
+		osDelay(1000);
+	}
+
+	if (!tcpConnectionOk)
+	{
+		return;
+	}
+
+	unsigned char clientHello[] = { 0x16, 0x03, 0x03, 0x00, 0x4f, 0x01, 0x00, 0x00, 0x4b, 0x03, 0x03, 0xff, 0xff, 0xff, 0xff, 0x26, 0xe4, 0xf8, 0x02, 0x80,
+			0xda, 0xc6, 0x26, 0x3c, 0xe9, 0x2c, 0xc5, 0x0a, 0xf3, 0xb7, 0x9e, 0xce, 0xb4, 0x15, 0x0a, 0x05, 0x03, 0xac, 0xaf, 0x82, 0xae, 0x98, 0xae, 0x00,
+			0x00, 0x04, 0xc0, 0x2b, 0x00, 0xff, 0x01, 0x00, 0x00, 0x1e, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0x08, 0x06, 0x03, 0x05, 0x03, 0x04, 0x03, 0x03, 0x03,
+			0x00, 0x0a, 0x00, 0x06, 0x00, 0x04, 0x00, 0x18, 0x00, 0x17, 0x00, 0x0b, 0x00, 0x02, 0x01, 0x00 };
+
+	rf24Client.write(clientHello, 84);
+
+	while (true)
+	{
+		int available = rf24Client.available();
+		if(available <= 0)
+		{
+			continue;
+		}
+
+		printf("Available: %d\n", available);
+		/*
+		uint8_t* chunk = new uint8_t[available];
+		int b = rf24Client.read(chunk, available);
+
+		printf("Chunk received (%d): ", b);
+		for(int i = 0; i < b; i++)
+		{
+			printf("%x ", chunk[i]);
+		}
+		printf("\n");
+		*/
+	}
+
 	uint32_t stackHighWaterMark;
 
 	mbedtls_platform_set_calloc_free(&Rf24SimpleMeshClient::mbedtlsCallockCallback, vPortFree);
-
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// TRUST CHAIN CONFIGURATION
@@ -177,6 +242,8 @@ void Rf24SimpleMeshClient::taskMethod()
 
 	mbedtls_ssl_config ssl_config;
 	mbedtls_ssl_config_init(&ssl_config);
+	mbedtls_ssl_conf_dbg(&ssl_config, &Rf24SimpleMeshClient::mbedtlsDebugPrintCallback, this);
+	mbedtls_debug_set_threshold(5);
 
 	if ((mbedtls_status = mbedtls_ssl_config_defaults(&ssl_config,
 	MBEDTLS_SSL_IS_CLIENT,
@@ -195,7 +262,7 @@ void Rf24SimpleMeshClient::taskMethod()
 	mbedtls_ssl_conf_max_version(&ssl_config, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3);
 	mbedtls_ssl_conf_min_version(&ssl_config, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3);
 	// Only use this cipher suite
-	static const int tls_cipher_suites[2] = { MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, 0 };
+	static const int tls_cipher_suites[2] = { MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, 0 };
 	mbedtls_ssl_conf_ciphersuites(&ssl_config, tls_cipher_suites);
 
 	// By limiting ourselves to TLS v1.2 and the previous cipher suites, we can compile mbedTLS without the unused ciphers
@@ -228,23 +295,11 @@ void Rf24SimpleMeshClient::taskMethod()
 
 	// ESTABLISH SECURE TLS CONNECTION
 
-	if (!setupRf24())
-	{
-		goto quit_ssl_context;
-	}
-
-	if (!rf24Client.connect(hostAddress, port))
-	{
-		printf("[Rf24SimpleMeshClient] [!] RF24 TCP connection failed.\n");
-		goto quit_ssl_context;
-	}
-
 	printf("[Rf24SimpleMeshClient] RF24 TCP/IP connection OK\n");
 	stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
 	printf("[Rf24SimpleMeshClient] Stack high water mark: %lu\n", stackHighWaterMark);
 
-	mbedtls_ssl_set_bio(&ssl_context, this, &Rf24SimpleMeshClient::mbedtlsNetSendCallback, &Rf24SimpleMeshClient::mbedtlsNetRecvCallback,
-			&Rf24SimpleMeshClient::mbedtlsNetRecvTimeoutCallback);
+	mbedtls_ssl_set_bio(&ssl_context, this, &Rf24SimpleMeshClient::mbedtlsNetSendCallback, &Rf24SimpleMeshClient::mbedtlsNetRecvCallback, nullptr);
 
 	// Verify that that certificate actually belongs to the host
 	if ((mbedtls_status = mbedtls_ssl_set_hostname(&ssl_context, hostName)) != 0)
@@ -252,6 +307,8 @@ void Rf24SimpleMeshClient::taskMethod()
 		printf("[Rf24SimpleMeshClient] [!] mbedtls_ssl_set_hostname (-0x%X)\n", -mbedtls_status);
 		goto quit_close_context;
 	}
+
+	printf("[Rf24SimpleMeshClient] mbedtls_ssl_set_hostname OK\n");
 	stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
 	printf("[Rf24SimpleMeshClient] Stack high water mark: %lu\n", stackHighWaterMark);
 
@@ -264,6 +321,8 @@ void Rf24SimpleMeshClient::taskMethod()
 		}
 		osThreadYield();
 	}
+
+	printf("[Rf24SimpleMeshClient] mbedtls_ssl_handshake OK\n");
 
 	if ((mbedtls_status = mbedtls_ssl_get_verify_result(&ssl_context)) != 0)
 	{
