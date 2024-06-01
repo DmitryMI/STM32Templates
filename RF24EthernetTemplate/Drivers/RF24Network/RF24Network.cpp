@@ -187,14 +187,14 @@ uint8_t ESBNetwork<radio_t>::update(void)
                 continue;
             }
             if ((returnSysMsgs && header->type > MAX_USER_DEFINED_HEADER_TYPE) || header->type == NETWORK_ACK) {
-                IF_SERIAL_DEBUG_ROUTING(printf_P(PSTR("MAC System payload rcvd %d\n"), returnVal););
+                IF_SERIAL_DEBUG_ROUTING(::printf("MAC System payload rcvd %d\n", returnVal););
                 if (header->type != NETWORK_FIRST_FRAGMENT && header->type != NETWORK_MORE_FRAGMENTS && header->type != EXTERNAL_DATA_TYPE && header->type != NETWORK_LAST_FRAGMENT) {
                     return returnVal;
                 }
             }
 
             if (enqueue(header) == 2) { //External data received
-                IF_SERIAL_DEBUG_MINIMAL(printf_P(PSTR("ret ext\n")););
+                IF_SERIAL_DEBUG_MINIMAL(::printf("ret ext\n"););
                 return EXTERNAL_DATA_TYPE;
             }
         }
@@ -220,7 +220,7 @@ uint8_t ESBNetwork<radio_t>::update(void)
                 uint8_t val = enqueue(header);
 
                 if (multicastRelay) {
-                    IF_SERIAL_DEBUG_ROUTING(printf_P(PSTR("MAC FWD multicast frame from 0%o to level %u\n"), header->from_node, _multicast_level + 1););
+                    IF_SERIAL_DEBUG_ROUTING(::printf("MAC FWD multicast frame from 0%o to level %u\n", header->from_node, _multicast_level + 1););
                     if ((node_address >> 3) != 0) {
                         // for all but the first level of nodes, those not directly connected to the master, we add the total delay per level
                         delayMicroseconds(600 * 4);
@@ -433,11 +433,11 @@ uint8_t ESBNetwork<radio_t>::enqueue(RF24NetworkHeader* header)
             memcpy((char*)(&frag_queue), &frame_buffer, sizeof(RF24NetworkHeader));
             memcpy(frag_queue.message_buffer, frame_buffer + sizeof(RF24NetworkHeader), message_size);
 
-            IF_SERIAL_DEBUG_FRAGMENTATION(printf_P(PSTR("queue first, total frags %d\n\r"), header->reserved););
+            IF_SERIAL_DEBUG_FRAGMENTATION(::printf("queue first, total frags %d\n\r", header->reserved););
             //Store the total size of the stored frame in message_size
             frag_queue.message_size = message_size;
             --frag_queue.header.reserved;
-            IF_SERIAL_DEBUG_FRAGMENTATION_L2(for (int i = 0; i < frag_queue.message_size; i++) { printf_P(PSTR("%02x"), frag_queue.message_buffer[i]); });
+            IF_SERIAL_DEBUG_FRAGMENTATION_L2(for (int i = 0; i < frag_queue.message_size; i++) { ::printf("%02x", frag_queue.message_buffer[i]); });
             return true;
         }
         // else if not first fragment
@@ -445,14 +445,14 @@ uint8_t ESBNetwork<radio_t>::enqueue(RF24NetworkHeader* header)
 
             if (frag_queue.message_size + message_size > MAX_PAYLOAD_SIZE) {
         #if defined(SERIAL_DEBUG_FRAGMENTATION) || defined(SERIAL_DEBUG_MINIMAL)
-                printf_P(PSTR("Drop frag %d Size exceeds max\n\r"), header->reserved);
+                ::printf("Drop frag %d Size exceeds max\n\r", header->reserved);
         #endif
                 frag_queue.header.reserved = 0;
                 return false;
             }
             if (frag_queue.header.reserved == 0 || (header->type != NETWORK_LAST_FRAGMENT && header->reserved != frag_queue.header.reserved) || frag_queue.header.id != header->id) {
         #if defined(SERIAL_DEBUG_FRAGMENTATION) || defined(SERIAL_DEBUG_MINIMAL)
-                printf_P(PSTR("Drop frag %d Out of order\n\r"), header->reserved);
+            	::printf("Drop frag %d Out of order\n\r", header->reserved);
         #endif
                 return false;
             }
@@ -467,8 +467,8 @@ uint8_t ESBNetwork<radio_t>::enqueue(RF24NetworkHeader* header)
             frag_queue.header.reserved = 0;
             frag_queue.header.type = header->reserved;
 
-            IF_SERIAL_DEBUG_FRAGMENTATION(printf_P(PSTR("fq 3: %d\n"), frag_queue.message_size););
-            IF_SERIAL_DEBUG_FRAGMENTATION_L2(for (int i = 0; i < frag_queue.message_size; i++) { printf_P(PSTR("%02X"), frag_queue.message_buffer[i]); });
+            IF_SERIAL_DEBUG_FRAGMENTATION(::printf("fq 3: %d\n", frag_queue.message_size););
+            IF_SERIAL_DEBUG_FRAGMENTATION_L2(for (int i = 0; i < frag_queue.message_size; i++) { ::printf("%02X", frag_queue.message_buffer[i]); });
 
             // Frame assembly complete, copy to main buffer if OK
             if (frag_queue.header.type == EXTERNAL_DATA_TYPE) {
@@ -487,10 +487,10 @@ uint8_t ESBNetwork<radio_t>::enqueue(RF24NetworkHeader* header)
                     next_frame += 4 - padding;
                 }
         #endif
-                IF_SERIAL_DEBUG_FRAGMENTATION(printf_P(PSTR("enq size %d\n"), frag_queue.message_size););
+                IF_SERIAL_DEBUG_FRAGMENTATION(::printf("enq size %d\n", frag_queue.message_size););
                 return true;
             }
-            IF_SERIAL_DEBUG_FRAGMENTATION(printf_P(PSTR("Drop frag payload, queue full\n")););
+            IF_SERIAL_DEBUG_FRAGMENTATION(::printf("Drop frag payload, queue full\n"););
             return false;
 
         } //If more or last fragments
@@ -711,7 +711,7 @@ bool ESBNetwork<radio_t>::write(RF24NetworkHeader& header, const void* message, 
 
     uint8_t msgCount = 0;
 
-    IF_SERIAL_DEBUG_FRAGMENTATION(printf_P(PSTR("FRG Total message fragments %d\n\r"), fragment_id););
+    IF_SERIAL_DEBUG_FRAGMENTATION(::printf("FRG Total message fragments %d\n\r", fragment_id););
 
     if (header.to_node != NETWORK_MULTICAST_ADDRESS) {
         networkFlags |= FLAG_FAST_FRAG;
@@ -759,12 +759,12 @@ bool ESBNetwork<radio_t>::write(RF24NetworkHeader& header, const void* message, 
         //if(writeDirect != NETWORK_AUTO_ROUTING){ delay(2); } //Delay 2ms between sending multicast payloads
 
         if (!ok && retriesPerFrag >= 3) {
-            IF_SERIAL_DEBUG_FRAGMENTATION(printf_P(PSTR("FRG TX with fragmentID '%d' failed after %d fragments. Abort.\n\r"), fragment_id, msgCount));
+            IF_SERIAL_DEBUG_FRAGMENTATION(::printf("FRG TX with fragmentID '%d' failed after %d fragments. Abort.\n\r", fragment_id, msgCount));
             break;
         }
 
         // Message was successful sent
-        IF_SERIAL_DEBUG_FRAGMENTATION_L2(printf_P(PSTR("FRG message transmission with fragmentID '%d' successful.\n\r"), fragment_id));
+        IF_SERIAL_DEBUG_FRAGMENTATION_L2(::printf("FRG message transmission with fragmentID '%d' successful.\n\r", fragment_id));
     }
     header.type = type;
     if (networkFlags & FLAG_FAST_FRAG) {
@@ -775,7 +775,7 @@ bool ESBNetwork<radio_t>::write(RF24NetworkHeader& header, const void* message, 
     networkFlags &= ~FLAG_FAST_FRAG;
 
     // Return true if all the chunks where sent successfully
-    IF_SERIAL_DEBUG_FRAGMENTATION(printf_P(PSTR("FRG total message fragments sent %i.\r\n"), msgCount););
+    IF_SERIAL_DEBUG_FRAGMENTATION(::printf("FRG total message fragments sent %i.\r\n", msgCount););
 
     if (!ok || fragment_id > 0) {
         return false;
@@ -859,7 +859,7 @@ bool ESBNetwork<radio_t>::write(uint16_t to_node, uint8_t sendType)
     logicalToPhysicalStruct conversion = {to_node, sendType, 0};
     logicalToPhysicalAddress(&conversion);
 
-    IF_SERIAL_DEBUG(printf_P(PSTR("MAC Sending to 0%o via 0%o on pipe %x\n\r"), to_node, conversion.send_node, conversion.send_pipe));
+    IF_SERIAL_DEBUG(::printf("MAC Sending to 0%o via 0%o on pipe %x\n\r", to_node, conversion.send_node, conversion.send_pipe));
     /**Write it*/
     if (sendType == TX_ROUTED && conversion.send_node == to_node && isAckType) {
         delay(2);
@@ -867,7 +867,7 @@ bool ESBNetwork<radio_t>::write(uint16_t to_node, uint8_t sendType)
     ok = write_to_pipe(conversion.send_node, conversion.send_pipe, conversion.multicast);
 
     if (!ok) {
-        IF_SERIAL_DEBUG_ROUTING(printf_P(PSTR("MAC Send fail to 0%o via 0%o on pipe %x\n\r"), to_node, conversion.send_node, conversion.send_pipe););
+        IF_SERIAL_DEBUG_ROUTING(::printf("MAC Send fail to 0%o via 0%o on pipe %x\n\r", to_node, conversion.send_node, conversion.send_pipe););
     }
 
     if (sendType == TX_ROUTED && ok && conversion.send_node == to_node && isAckType) {
@@ -889,7 +889,7 @@ bool ESBNetwork<radio_t>::write(uint16_t to_node, uint8_t sendType)
         write_to_pipe(conversion.send_node, conversion.send_pipe, conversion.multicast);
 
         // dynLen=0;
-        IF_SERIAL_DEBUG_ROUTING(printf_P(PSTR("MAC Route OK to 0%o ACK sent to 0%o\n"), to_node, header->from_node););
+        IF_SERIAL_DEBUG_ROUTING(::printf("MAC Route OK to 0%o ACK sent to 0%o\n", to_node, header->from_node););
     }
 
     if (ok && conversion.send_node != to_node && (sendType == TX_NORMAL || sendType == USER_TX_TO_LOGICAL_ADDRESS) && isAckType) {
@@ -907,7 +907,7 @@ bool ESBNetwork<radio_t>::write(uint16_t to_node, uint8_t sendType)
             delayMicroseconds(900);
 #endif
             if (millis() - reply_time > routeTimeout) {
-                IF_SERIAL_DEBUG_ROUTING(printf_P(PSTR("MAC Network ACK fail from 0%o via 0%o on pipe %x\n\r"), to_node, conversion.send_node, conversion.send_pipe););
+                IF_SERIAL_DEBUG_ROUTING(::printf("MAC Network ACK fail from 0%o via 0%o on pipe %x\n\r", to_node, conversion.send_node, conversion.send_pipe););
                 ok = false;
                 break;
             }
@@ -1081,7 +1081,7 @@ void ESBNetwork<radio_t>::setup_address(void)
     }
     parent_pipe = i;
 
-    IF_SERIAL_DEBUG_MINIMAL(printf_P(PSTR("setup_address node=0%o mask=0%o parent=0%o pipe=0%o\n\r"), node_address, node_mask, parent_node, parent_pipe););
+    IF_SERIAL_DEBUG_MINIMAL(::printf("setup_address node=0%o mask=0%o parent=0%o pipe=0%o\n\r", node_address, node_mask, parent_node, parent_pipe););
     //  IF_SERIAL_DEBUG_MINIMAL(Serial.print(F("setup_address node=")));
     //  IF_SERIAL_DEBUG_MINIMAL(Serial.print(node_address,OCT));
     //  IF_SERIAL_DEBUG_MINIMAL(Serial.print(F(" parent=")));
@@ -1133,7 +1133,7 @@ bool ESBNetwork<radio_t>::is_valid_address(uint16_t node)
         uint8_t digit = node & 0x07;
         if (digit < 1 || digit > 5) {
             result = false;
-            IF_SERIAL_DEBUG_MINIMAL(printf_P(PSTR("*** WARNING *** Invalid address 0%o\n\r"), origNode););
+            IF_SERIAL_DEBUG_MINIMAL(::printf("*** WARNING *** Invalid address 0%o\n\r", origNode););
             break;
         }
         node >>= 3;
@@ -1141,7 +1141,7 @@ bool ESBNetwork<radio_t>::is_valid_address(uint16_t node)
     }
 
     if (count > 4) {
-        IF_SERIAL_DEBUG_MINIMAL(printf_P(PSTR("*** WARNING *** Invalid address 0%o\n\r"), origNode););
+        IF_SERIAL_DEBUG_MINIMAL(::printf("*** WARNING *** Invalid address 0%o\n\r", origNode););
         return false;
     }
     return result;
