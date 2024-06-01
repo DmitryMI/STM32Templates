@@ -314,7 +314,7 @@ bool ESBMesh<network_t, radio_t>::requestAddress(uint8_t level)
 {
     RF24NetworkHeader header(MESH_MULTICAST_ADDRESS, NETWORK_POLL);
     //Find another radio, starting with level 0 multicast
-    IF_MESH_DEBUG(printf_P(PSTR("%u: MSH Poll\n"), millis()));
+    IF_MESH_DEBUG(::printf("%lu: MSH Poll\n", millis()));
     network.multicast(header, 0, 0, level);
 
     uint32_t timr = millis();
@@ -337,23 +337,23 @@ bool ESBMesh<network_t, radio_t>::requestAddress(uint8_t level)
                 ++pollCount;
             }
 
-            IF_MESH_DEBUG(printf_P(PSTR("%u: MSH Poll %c -64dbm\n"), millis(), (goodSignal ? '>' : '<')));
+            IF_MESH_DEBUG(::printf("%lu: MSH Poll %c -64dbm\n", millis(), (goodSignal ? '>' : '<')));
         } // end if
 
         if (millis() - timr > 55 || pollCount >= MESH_MAXPOLLS) {
             if (!pollCount) {
-                IF_MESH_DEBUG(printf_P(PSTR("%u: MSH No poll from level %d\n"), millis(), level));
+                IF_MESH_DEBUG(::printf("%lu: MSH No poll from level %d\n", millis(), level));
                 return 0;
             }
             else {
-                IF_MESH_DEBUG(printf_P(PSTR("%u: MSH Poll OK\n"), millis()));
+                IF_MESH_DEBUG(::printf("%lu: MSH Poll OK\n", millis()));
                 break;
             }
         }
         MESH_CALLBACK
     } // end while
 
-    IF_MESH_DEBUG(printf_P(PSTR("%u: MSH Got poll from level %d count %d\n"), millis(), level, pollCount));
+    IF_MESH_DEBUG(::printf("%lu: MSH Got poll from level %d count %d\n", millis(), level, pollCount));
 
     bool gotResponse = 0;
     for (uint8_t i = 0; i < pollCount; i++) {
@@ -365,7 +365,7 @@ bool ESBMesh<network_t, radio_t>::requestAddress(uint8_t level)
         // Do a direct write (no ack) to the contact node. Include the nodeId and address.
         network.write(header, 0, 0, contactNode[i]);
 
-        IF_MESH_DEBUG(printf_P(PSTR("%u: MSH Request address from: 0%o\n"), millis(), contactNode[i]));
+        IF_MESH_DEBUG(::printf("%lu: MSH Request address from: 0%o\n", millis(), contactNode[i]));
 
         timr = millis();
 
@@ -394,7 +394,7 @@ bool ESBMesh<network_t, radio_t>::requestAddress(uint8_t level)
     uint16_t newAddress = 0;
     memcpy(&newAddress, network.frame_buffer + sizeof(RF24NetworkHeader), sizeof(newAddress));
 
-    IF_MESH_DEBUG(printf_P(PSTR("Set address 0%o rcvd 0%o\n"), mesh_address, newAddress));
+    IF_MESH_DEBUG(::printf("Set address 0%o rcvd 0%o\n", mesh_address, newAddress));
     mesh_address = newAddress;
 
     radio.stopListening();
@@ -521,7 +521,7 @@ void ESBMesh<network_t, radio_t>::DHCP()
 
     // Get the unique id of the requester (ID is in header.reserved)
     if (!header.reserved || header.type != NETWORK_REQ_ADDRESS) {
-        IF_MESH_DEBUG(printf_P(PSTR("%u: MSH Invalid id or type rcvd\n"), millis()));
+        IF_MESH_DEBUG(::printf("%lu: MSH Invalid id or type rcvd\n", millis()));
         return;
     }
 
@@ -555,7 +555,7 @@ void ESBMesh<network_t, radio_t>::DHCP()
         if (newAddress == MESH_DEFAULT_ADDRESS) continue;
 
         for (uint8_t i = 0; i < addrListTop; i++) {
-            IF_MESH_DEBUG_MINIMAL(printf_P(PSTR("ID: %d ADDR: 0%o\n"), addrList[i].nodeID, addrList[i].address));
+            IF_MESH_DEBUG_MINIMAL(::printf("ID: %d ADDR: 0%o\n", addrList[i].nodeID, addrList[i].address));
             if (addrList[i].address == newAddress && addrList[i].nodeID != header.reserved) {
                 found = true;
                 break;
@@ -584,11 +584,11 @@ void ESBMesh<network_t, radio_t>::DHCP()
                 network.write(header, &newAddress, sizeof(newAddress), header.to_node);
             }
 
-            IF_MESH_DEBUG(printf_P(PSTR("Sent to 0%o phys: 0%o new: 0%o id: %d\n"), header.to_node, MESH_DEFAULT_ADDRESS, newAddress, header.reserved));
+            IF_MESH_DEBUG(::printf("Sent to 0%o phys: 0%o new: 0%o id: %d\n", header.to_node, MESH_DEFAULT_ADDRESS, newAddress, header.reserved));
             break;
         }
         else {
-            IF_MESH_DEBUG(printf_P(PSTR("not allocated\n")));
+            IF_MESH_DEBUG(::printf("not allocated\n"));
         }
     } // end for
 }
