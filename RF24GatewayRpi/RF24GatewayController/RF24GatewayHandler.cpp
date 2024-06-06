@@ -61,7 +61,7 @@ RF24GatewayHandler::~RF24GatewayHandler()
 #endif
 }
 
-bool RF24GatewayHandler::Begin(std::string Ip, std::string Subnet)
+bool RF24GatewayHandler::Begin(std::string Ip, std::string Subnet, uint8_t Rf24Channel, uint8_t Rf24DataRate, uint8_t GatewayNodeId)
 {
     std::array<uint8_t, 4> IpBytes;
     std::array<uint8_t, 4> SubnetBytes;
@@ -77,10 +77,10 @@ bool RF24GatewayHandler::Begin(std::string Ip, std::string Subnet)
     }
     spdlog::info("Gateway IP parsed: {}.{}.{}.{}", IpBytes[0], IpBytes[1], IpBytes[2], IpBytes[3]);
     spdlog::info("Gateway Subnet parsed: {}.{}.{}.{}", SubnetBytes[0], SubnetBytes[1], SubnetBytes[2], SubnetBytes[3]);
-    return Begin(IpBytes, SubnetBytes);
+    return Begin(IpBytes, SubnetBytes, Rf24Channel, Rf24DataRate, GatewayNodeId);
 }
 
-bool RF24GatewayHandler::Begin(const std::array<uint8_t, 4>& Ip, const std::array<uint8_t, 4>& Subnet)
+bool RF24GatewayHandler::Begin(const std::array<uint8_t, 4>& Ip, const std::array<uint8_t, 4>& Subnet, uint8_t Rf24Channel, uint8_t Rf24DataRate, uint8_t GatewayNodeId)
 {
     spdlog::info(
         "Starting RF24GatewayHandler with IP {}.{}.{}.{} and Subnet {}.{}.{}.{}...",
@@ -102,7 +102,8 @@ bool RF24GatewayHandler::Begin(const std::array<uint8_t, 4>& Ip, const std::arra
         return false;
     }
 	
-    Gateway.begin((uint8_t)0, (uint8_t)97, RF24_250KBPS);
+    spdlog::info("Starting Gateway with NodeID: {}, RF24 Channel: {}, RF24 Data Rate: {}", GatewayNodeId, Rf24Channel, Rf24DataRate);
+    Gateway.begin(GatewayNodeId, Rf24Channel, (rf24_datarate_e)Rf24DataRate);
 	
     WorkerThread = std::thread(&RF24GatewayHandler::WorkerMethod, this);
     

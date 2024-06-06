@@ -23,8 +23,8 @@ public:
 	RF24GatewayHandler(uint16_t CePin, uint16_t CsnPin);
 	~RF24GatewayHandler();
 
-	bool Begin(const std::array<uint8_t, 4>& Ip, const std::array<uint8_t, 4>& Subnet);
-	bool Begin(std::string Ip, std::string Subnet);
+	bool Begin(const std::array<uint8_t, 4>& Ip, const std::array<uint8_t, 4>& Subnet, uint8_t Rf24Channel, uint8_t Rf24DataRate, uint8_t GatewayNodeId);
+	bool Begin(std::string Ip, std::string Subnet, uint8_t Rf24Channel, uint8_t Rf24DataRate, uint8_t GatewayNodeId);
 
 	void SetIpAddress(const std::array<uint8_t, 4>& Ip, const std::array<uint8_t, 4>& Subnet);
 

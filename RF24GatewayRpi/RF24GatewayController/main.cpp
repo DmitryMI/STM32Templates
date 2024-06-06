@@ -46,8 +46,11 @@ struct Configuration
 {
 	uint16_t Rf24CePin = 0;
 	uint16_t Rf24CsnPin = 0;
+	uint8_t Rf24Channel = 0;
+	uint8_t Rf24DataRate = 0;
 	std::string GatewayIp;
 	std::string GatewaySubnet;
+	uint8_t GatewayNodeId = 0;
 };
 
 std::filesystem::path GetHomeDir()
@@ -219,8 +222,11 @@ bool ReadConfiguration(int argc, char** argv, const po::options_description& des
 
 	config.Rf24CePin = vm["rf24-ce-pin"].as<uint16_t>();
 	config.Rf24CsnPin = vm["rf24-csn-pin"].as<uint16_t>();
+	config.Rf24DataRate = vm["rf24-data-rate"].as<uint8_t>();
+	config.Rf24Channel = vm["rf24-channel"].as<uint8_t>();
 	config.GatewayIp = vm["gateway-ip"].as<std::string>();
 	config.GatewaySubnet = vm["gateway-subnet"].as<std::string>();
+	config.GatewayNodeId = vm["gateway-node-id"].as<uint8_t>();
 
 	return true;
 }
@@ -264,7 +270,7 @@ int main(int argc, char** argv)
 	}
 
     RF24GatewayHandler GatewayHandler(configuration.Rf24CePin, configuration.Rf24CsnPin);
-	GatewayHandler.Begin(configuration.GatewayIp, configuration.GatewaySubnet);
+	GatewayHandler.Begin(configuration.GatewayIp, configuration.GatewaySubnet, configuration.Rf24Channel, configuration.Rf24DataRate, configuration.GatewayNodeId);
 
 	while (true)
 	{
