@@ -51,7 +51,8 @@ private:
 
 	bool setupRf24();
 	void updateMesh();
-	std::unique_ptr<mbedtls_ssl_context> connectWithTls(mbedtls_ssl_context& ssl_context, const IPAddress& hostAddress, uint16_t port);
+
+	bool connectWithTls();
 
 	static int entropySourceCallback(void *data, unsigned char *output, size_t len, size_t *olen);
 	static int mbedtlsNetSendCallback( void *ctx, const unsigned char *buf, size_t len );

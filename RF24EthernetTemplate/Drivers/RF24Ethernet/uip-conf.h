@@ -185,7 +185,8 @@
  * I think this might be a bug or missing feature of the uip stack
  */
 #if UIP_CONF_BUFFER_SIZE >= 512
-    #define UIP_CONF_RECEIVE_WINDOW 511
+    // #define UIP_CONF_RECEIVE_WINDOW 511
+	#define UIP_CONF_RECEIVE_WINDOW UIP_CONF_BUFFER_SIZE - UIP_CONF_LLH_LEN - UIP_TCPIP_HLEN // This is set automatically to the max allowable size
 #else
     //#define UIP_CONF_RECEIVE_WINDOW UIP_CONF_BUFFER_SIZE *2 - UIP_CONF_LLH_LEN - UIP_TCPIP_HLEN //This is set automatically to the max allowable size
     #define UIP_CONF_RECEIVE_WINDOW UIP_CONF_BUFFER_SIZE - UIP_CONF_LLH_LEN - UIP_TCPIP_HLEN // This is set automatically to the max allowable size

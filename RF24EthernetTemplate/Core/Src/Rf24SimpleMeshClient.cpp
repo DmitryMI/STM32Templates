@@ -102,8 +102,9 @@ int Rf24SimpleMeshClient::mbedtlsNetSendImpl(const unsigned char *buf, size_t le
 
 int Rf24SimpleMeshClient::mbedtlsNetRecvImpl(unsigned char *buf, size_t len)
 {
+	uint32_t timeout = HAL_GetTick() + 10000;
 	size_t leftToRead = len;
-	while (leftToRead > 0)
+	while (leftToRead > 0 && HAL_GetTick() < timeout)
 	{
 		updateMesh();
 		size_t available = (size_t) rf24Client.available();
@@ -136,13 +137,27 @@ int Rf24SimpleMeshClient::mbedtlsNetRecvTimeoutImpl(unsigned char *buf, size_t l
 
 void Rf24SimpleMeshClient::taskMethod()
 {
+	while(true)
+	{
+		if(connectWithTls())
+		{
+			break;
+		}
+
+		printf("FAILURE\n\n");
+		osDelay(1000);
+	}
+}
+
+bool Rf24SimpleMeshClient::connectWithTls()
+{
 	const auto hostAddress = IPAddress(192, 168, 0, 6);
 	const auto hostName = "192.168.0.6";
 	const auto port = 1234;
 
 	if (!setupRf24())
 	{
-		return;
+		return false;
 	}
 
 	bool tcpConnectionOk;
@@ -161,7 +176,7 @@ void Rf24SimpleMeshClient::taskMethod()
 
 	if (!tcpConnectionOk)
 	{
-		return;
+		return false;
 	}
 
 	uint32_t stackHighWaterMark;
@@ -411,11 +426,11 @@ quit_close_context:
 
 	// In our protocol, the connection will be closed by the server first
 #if 0
-	if ((status = mbedtls_ssl_close_notify(&ssl_context)) != 0)
-	{
-		  printf("[Rf24SimpleMeshClient] [!] mbedtls_ssl_close_notify (-0x%X)\n", -status);
-	}
-#endif
+		if ((status = mbedtls_ssl_close_notify(&ssl_context)) != 0)
+		{
+			  printf("[Rf24SimpleMeshClient] [!] mbedtls_ssl_close_notify (-0x%X)\n", -status);
+		}
+	#endif
 
 quit_ssl_context:
 	mbedtls_ssl_free(&ssl_context);
@@ -430,6 +445,8 @@ quit_entropy:
 quit_x509_certificate:
 	mbedtls_x509_crt_free(&x509_certificate);
 
+	rf24Client.stop();
+	return false;
 }
 
 bool Rf24SimpleMeshClient::setupRf24()
@@ -443,14 +460,14 @@ bool Rf24SimpleMeshClient::setupRf24()
 
 	printf("[Rf24SimpleMeshClient] radio.begin() OK\n");
 
-	if(!radio.isPVariant())
+	if (!radio.isPVariant())
 	{
 		printf("[Rf24SimpleMeshClient] [!] RF24 is not P-Variant!\n");
 	}
 
 	printf("[Rf24SimpleMeshClient] RF24 is P-Variant.\n");
 
-	if(!radio.setDataRate(RF24_1MBPS))
+	if (!radio.setDataRate(RF24_1MBPS))
 	{
 		printf("[Rf24SimpleMeshClient] radio.setDataRate() failed\n");
 		return false;
