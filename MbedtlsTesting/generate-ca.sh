@@ -1,7 +1,7 @@
 set -e
 
 # Generate a new ECDSA private key
-openssl ecparam -genkey -name secp128r1 -out ca-prk.pem
+openssl ecparam -genkey -name secp160k1 -out ca-prk.pem
 
 # Create a new certificate signing request (CSR) using the ECDSA private key
 openssl req -new -sha1 -key ca-prk.pem -out ca-csr.pem -subj "/C=US/ST=California/L=Los Angeles/O=TLS Testing"
