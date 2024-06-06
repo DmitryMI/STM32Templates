@@ -15,6 +15,7 @@
 #include <RF24Ethernet.h>
 #include <array>
 #include "IPAddress.h"
+#include "mbedtls.h"
 
 class Rf24SimpleMeshClient
 {
@@ -37,19 +38,20 @@ private:
 	// EOLs are required! Parsing fails without them.
 	static constexpr const char *CertificateAuthority =
 			"-----BEGIN CERTIFICATE-----\n"
-			"MIIBmDCCAT0CFAWJfNLhwOuQARSbn8a3DawmI8h4MAoGCCqGSM49BAMCME4xCzAJ\n"
+			"MIIBmDCCAT0CFBe4QfkSzhG/qJOs+E4WIuxp244VMAoGCCqGSM49BAMCME4xCzAJ\n"
 			"BgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRQwEgYDVQQHDAtMb3MgQW5n\n"
-			"ZWxlczEUMBIGA1UECgwLVExTIFRlc3RpbmcwHhcNMjQwNjA2MTAwMjI5WhcNMzQw\n"
-			"NjA0MTAwMjI5WjBOMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEU\n"
+			"ZWxlczEUMBIGA1UECgwLVExTIFRlc3RpbmcwHhcNMjQwNjA2MTEyMzI1WhcNMzQw\n"
+			"NjA0MTEyMzI1WjBOMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEU\n"
 			"MBIGA1UEBwwLTG9zIEFuZ2VsZXMxFDASBgNVBAoMC1RMUyBUZXN0aW5nMFkwEwYH\n"
-			"KoZIzj0CAQYIKoZIzj0DAQcDQgAETooT37oYti/vqd+A3L6dJrpAqY30oEknyofG\n"
-			"dPRK6yo3oakO+sFPoUgsdFlnXXKhH0H+FPloiUF6dxJHBBHRATAKBggqhkjOPQQD\n"
-			"AgNJADBGAiEAj377/RfgBQOVy2mcdnvkszvY0EbxGohFqVJB9FjLaRQCIQCj2HtG\n"
-			"y1yAxS3zAtzTODvXTX8QZGSzw4rjANZm9qE48Q==\n"
-			"-----END CERTIFICATE-----";
+			"KoZIzj0CAQYIKoZIzj0DAQcDQgAENiJtzyzHACo/3yI6E35/rwkN9NnzKssIxq9/\n"
+			"mW2pLsBGm1utR1JXYvmRTDDeTK6b9keY53XEFqPsXOCPWR0c/zAKBggqhkjOPQQD\n"
+			"AgNJADBGAiEA1uetfd5eNLodPviYtkZgoTsueLrXlL2OhpCQzgJvepwCIQCE/mh5\n"
+			"rz9NVHZJ8kboBtS40o/2VFEekCoG8RtpN+cffg==\n"
+			"-----END CERTIFICATE-----\n";
 
 	bool setupRf24();
 	void updateMesh();
+	std::unique_ptr<mbedtls_ssl_context> connectWithTls(mbedtls_ssl_context& ssl_context, const IPAddress& hostAddress, uint16_t port);
 
 	static int entropySourceCallback(void *data, unsigned char *output, size_t len, size_t *olen);
 	static int mbedtlsNetSendCallback( void *ctx, const unsigned char *buf, size_t len );
