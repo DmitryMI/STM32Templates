@@ -4,7 +4,7 @@ set -e
 openssl ecparam -genkey -name prime256v1 -out server-prk.pem
 
 # Create a new certificate signing request (CSR) using the ECDSA private key
-openssl req -new -sha256 -key server-prk.pem -out server-csr.pem -subj "/C=US/ST=0/L=0/O=0/CN=127.0.0.1"
+openssl req -new -sha256 -key server-prk.pem -out server-csr.pem -subj "/C=US/ST=0/L=0/O=0/CN=192.168.0.6"
 
 # Display the CSR details
 openssl req -in server-csr.pem -noout -text
