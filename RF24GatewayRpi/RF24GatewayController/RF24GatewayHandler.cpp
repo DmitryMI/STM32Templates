@@ -102,7 +102,7 @@ bool RF24GatewayHandler::Begin(const std::array<uint8_t, 4>& Ip, const std::arra
         return false;
     }
 	
-    Gateway.begin(0, 97, RF24_250KBPS);
+    Gateway.begin((uint8_t)0, (uint8_t)97, RF24_250KBPS);
 	
     WorkerThread = std::thread(&RF24GatewayHandler::WorkerMethod, this);
     
