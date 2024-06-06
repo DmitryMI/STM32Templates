@@ -103,6 +103,7 @@ bool RF24GatewayHandler::Begin(const std::array<uint8_t, 4>& Ip, const std::arra
     }
 	
 	Radio.setDataRate(RF24_250KBPS);
+	spdlog::info("RF24 data rate set to 250 kbps");
 
     Gateway.begin();
     spdlog::info("Gateway.begin() successful");
