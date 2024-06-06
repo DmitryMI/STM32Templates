@@ -102,15 +102,7 @@ bool RF24GatewayHandler::Begin(const std::array<uint8_t, 4>& Ip, const std::arra
         return false;
     }
 	
-    Gateway.begin();
-    spdlog::info("Gateway.begin() successful");
-	
-	if(!Radio.setDataRate(RF24_250KBPS))
-	{
-		spdlog::error("Failed to set RF24 data rate to 250 kbps");
-		return false;
-	}
-	spdlog::info("RF24 data rate set to 250 kbps");
+    Gateway.begin(0, 97, RF24_250KBPS);
 	
     WorkerThread = std::thread(&RF24GatewayHandler::WorkerMethod, this);
     

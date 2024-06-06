@@ -441,13 +441,22 @@ bool Rf24SimpleMeshClient::setupRf24()
 		return false;
 	}
 
+	printf("[Rf24SimpleMeshClient] radio.begin() OK\n");
+
+	if(!radio.isPVariant())
+	{
+		printf("[Rf24SimpleMeshClient] [!] RF24 is not P-Variant!\n");
+	}
+
+	printf("[Rf24SimpleMeshClient] RF24 is P-Variant.\n");
+
 	if(!radio.setDataRate(RF24_250KBPS))
 	{
 		printf("[Rf24SimpleMeshClient] radio.setDataRate() failed\n");
 		return false;
 	}
 
-	printf("[Rf24SimpleMeshClient] radio.begin() OK\n");
+	printf("[Rf24SimpleMeshClient] radio.setDataRate() OK\n");
 
 	IPAddress myIP(10, 10, 2, 32);
 	Ethernet.begin(myIP);
