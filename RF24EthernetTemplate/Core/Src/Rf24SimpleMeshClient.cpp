@@ -102,7 +102,7 @@ int Rf24SimpleMeshClient::mbedtlsNetSendImpl(const unsigned char *buf, size_t le
 
 int Rf24SimpleMeshClient::mbedtlsNetRecvImpl(unsigned char *buf, size_t len)
 {
-	uint32_t timeout = HAL_GetTick() + 10000;
+	uint32_t timeout = HAL_GetTick() + 60000;
 	size_t leftToRead = len;
 	while (leftToRead > 0 && HAL_GetTick() < timeout)
 	{
@@ -110,7 +110,7 @@ int Rf24SimpleMeshClient::mbedtlsNetRecvImpl(unsigned char *buf, size_t len)
 		size_t available = (size_t) rf24Client.available();
 		if (available == 0)
 		{
-			osThreadYield();
+			// osThreadYield();
 			continue;
 		}
 
@@ -145,12 +145,14 @@ void Rf24SimpleMeshClient::taskMethod()
 		}
 
 		printf("FAILURE\n\n");
-		osDelay(1000);
+		osDelay(3000);
 	}
 }
 
 bool Rf24SimpleMeshClient::connectWithTls()
 {
+	bool success = false;
+
 	const auto hostAddress = IPAddress(192, 168, 0, 6);
 	const auto hostName = "192.168.0.6";
 	const auto port = 1234;
@@ -171,7 +173,7 @@ bool Rf24SimpleMeshClient::connectWithTls()
 		}
 
 		printf("[Rf24SimpleMeshClient] [!] RF24 TCP connection failed. Retrying...\n");
-		osDelay(1000);
+		osDelay(3000);
 	}
 
 	if (!tcpConnectionOk)
@@ -305,7 +307,7 @@ bool Rf24SimpleMeshClient::connectWithTls()
 			printf("[Rf24SimpleMeshClient] [!] mbedtls_ssl_handshake (-0x%X)\n", -mbedtls_status);
 			goto quit_close_context;
 		}
-		osThreadYield();
+		// osThreadYield();
 	}
 
 	printf("[Rf24SimpleMeshClient] mbedtls_ssl_handshake OK\n");
@@ -416,11 +418,7 @@ bool Rf24SimpleMeshClient::connectWithTls()
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	while (true)
-	{
-		updateMesh();
-		osThreadYield();
-	}
+	success = true;
 
 quit_close_context:
 
@@ -446,7 +444,7 @@ quit_x509_certificate:
 	mbedtls_x509_crt_free(&x509_certificate);
 
 	rf24Client.stop();
-	return false;
+	return success;
 }
 
 bool Rf24SimpleMeshClient::setupRf24()
