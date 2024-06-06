@@ -434,9 +434,16 @@ quit_x509_certificate:
 
 bool Rf24SimpleMeshClient::setupRf24()
 {
+
 	if (!radio.begin(&spi))
 	{
 		printf("[Rf24SimpleMeshClient] radio.begin() failed\n");
+		return false;
+	}
+
+	if(!radio.setDataRate(RF24_250KBPS))
+	{
+		printf("[Rf24SimpleMeshClient] radio.setDataRate() failed\n");
 		return false;
 	}
 

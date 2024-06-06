@@ -101,6 +101,8 @@ bool RF24GatewayHandler::Begin(const std::array<uint8_t, 4>& Ip, const std::arra
         spdlog::error("Failed to begin Radio");
         return false;
     }
+	
+	Radio.setDataRate(RF24_250KBPS);
 
     Gateway.begin();
     spdlog::info("Gateway.begin() successful");
@@ -168,7 +170,7 @@ void RF24GatewayHandler::WorkerMethod()
         //checking for deviations from the default configuration (1MBPS data rate)
         //The mesh is restarted on failure and failure count logged to failLog.txt
         //This makes the radios hot-swappable, disconnect & reconnect as desired, it should come up automatically
-        if (Radio.failureDetected > 0 || Radio.getDataRate() != RF24_1MBPS)
+        if (Radio.failureDetected > 0)
         {
             Radio.failureDetected = 0;
             std::ofstream myFile;

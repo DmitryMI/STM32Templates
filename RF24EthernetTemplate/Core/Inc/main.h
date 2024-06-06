@@ -61,6 +61,7 @@ void Error_Handler(void);
 #define BLACKPILL_USER_LED_GPIO_Port GPIOC
 #define RF24_INT_Pin GPIO_PIN_2
 #define RF24_INT_GPIO_Port GPIOA
+#define RF24_INT_EXTI_IRQn EXTI2_IRQn
 #define RF24_CE_Pin GPIO_PIN_3
 #define RF24_CE_GPIO_Port GPIOA
 #define RF24_CSN_Pin GPIO_PIN_4
