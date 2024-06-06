@@ -1474,7 +1474,7 @@
  *
  * Comment this macro to disable support for DTLS
  */
-//#define MBEDTLS_SSL_PROTO_DTLS
+#define MBEDTLS_SSL_PROTO_DTLS
 
 /**
  * \def MBEDTLS_SSL_ALPN

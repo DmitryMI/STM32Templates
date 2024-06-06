@@ -16,6 +16,7 @@
 #include <array>
 #include "IPAddress.h"
 #include "mbedtls.h"
+#include "RF24Udp.h"
 
 class Rf24SimpleMeshClient
 {
@@ -28,6 +29,11 @@ public:
 private:
 	RF24_SPI spi;
 	EthernetClient rf24Client;
+	RF24UDP rf24UdpClient;
+
+	const IPAddress hostAddress = IPAddress(192, 168, 0, 2);
+	const char* hostName = "192.168.0.2";
+	const uint16_t hostPort = 1234;
 
 	uint32_t counter = 0;
 	uint32_t reqTimer = 0;
@@ -36,8 +42,7 @@ private:
 	int currentHostIndex = 0;
 
 	// EOLs are required! Parsing fails without them.
-	static constexpr const char *CertificateAuthority =
-			"-----BEGIN CERTIFICATE-----\n"
+	static constexpr const char *CertificateAuthority = "-----BEGIN CERTIFICATE-----\n"
 			"MIIBmDCCAT0CFBe4QfkSzhG/qJOs+E4WIuxp244VMAoGCCqGSM49BAMCME4xCzAJ\n"
 			"BgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRQwEgYDVQQHDAtMb3MgQW5n\n"
 			"ZWxlczEUMBIGA1UECgwLVExTIFRlc3RpbmcwHhcNMjQwNjA2MTEyMzI1WhcNMzQw\n"
@@ -55,17 +60,20 @@ private:
 	bool connectWithTls();
 
 	static int entropySourceCallback(void *data, unsigned char *output, size_t len, size_t *olen);
-	static int mbedtlsNetSendCallback( void *ctx, const unsigned char *buf, size_t len );
-	static int mbedtlsNetRecvCallback( void *ctx, unsigned char *buf, size_t len );
-	static int mbedtlsNetRecvTimeoutCallback( void *ctx, unsigned char *buf, size_t len,
-            uint32_t timeout );
-	static void mbedtlsDebugPrintCallback(void *ctx, int level, const char *file, int line,
-            const char *str);
-	static void* mbedtlsCallockCallback( size_t num, size_t size);
-	int mbedtlsNetSendImpl(const unsigned char *buf, size_t len );
-	int mbedtlsNetRecvImpl(unsigned char *buf, size_t len );
-	int mbedtlsNetRecvTimeoutImpl(unsigned char *buf, size_t len,
-	                      uint32_t timeout);
+
+	static int mbedtlsTcpSendCallback(void *ctx, const unsigned char *buf, size_t len);
+	static int mbedtlsTcpRecvCallback(void *ctx, unsigned char *buf, size_t len);
+
+	static int mbedtlsUdpSendCallback(void *ctx, const unsigned char *buf, size_t len);
+	static int mbedtlsUdpRecvCallback(void *ctx, unsigned char *buf, size_t len);
+
+	static void mbedtlsDebugPrintCallback(void *ctx, int level, const char *file, int line, const char *str);
+	static void* mbedtlsCallockCallback(size_t num, size_t size);
+
+	int mbedtlsTcpSendImpl(const unsigned char *buf, size_t len);
+	int mbedtlsTcpRecvImpl(unsigned char *buf, size_t len);
+	int mbedtlsUdpSendImpl(const unsigned char *buf, size_t len);
+	int mbedtlsUdpRecvImpl(unsigned char *buf, size_t len);
 };
 
 #endif /* INC_RF24SIMPLEMESHCLIENT_H_ */

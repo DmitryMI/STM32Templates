@@ -39,3 +39,7 @@
 .launch
 
 */MXTmpFiles
+MbedtlsTesting/dtls_server.py/.vs/dtls_server.py/v17/.suo
+MbedtlsTesting/ca-cer.pem
+MbedtlsTesting/server-cer.pem
+MbedtlsTesting/server-prk.pem
