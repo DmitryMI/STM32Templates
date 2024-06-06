@@ -100,7 +100,7 @@ int RF24Client::connect(const char* host, uint16_t port)
     if (ret == 1)
     {
     #if defined(ETH_DEBUG_L1) || #defined(RF24ETHERNET_DEBUG_DNS)
-        Serial.println(F("*UIP Got DNS*"));
+        printf("*UIP Got DNS*\n");
     #endif
         return connect(remote_addr, port);
     }

@@ -104,7 +104,7 @@
  * with a single address if requesting an address of www.google.com vs google.com, and this will work with the default payload size
  */
 
-#define UIP_CONF_UDP 0
+#define UIP_CONF_UDP 1
 //#define UIP_CONF_BROADCAST 0
 //#define UIP_CONF_UDP_CONNS 1
 

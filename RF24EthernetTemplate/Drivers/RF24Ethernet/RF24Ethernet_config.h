@@ -32,6 +32,8 @@
 /****************************************/
 
 #define millis HAL_GetTick
+#define byte uint8_t
+#define boolean bool
 
 // Note: See uip-conf.h for general user configuration options
 
