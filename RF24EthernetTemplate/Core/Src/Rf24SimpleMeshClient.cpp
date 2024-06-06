@@ -450,7 +450,7 @@ bool Rf24SimpleMeshClient::setupRf24()
 
 	printf("[Rf24SimpleMeshClient] RF24 is P-Variant.\n");
 
-	if(!radio.setDataRate(RF24_250KBPS))
+	if(!radio.setDataRate(RF24_1MBPS))
 	{
 		printf("[Rf24SimpleMeshClient] radio.setDataRate() failed\n");
 		return false;

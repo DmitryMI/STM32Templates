@@ -30,9 +30,13 @@ po::options_description create_options_description()
         ("log-level", po::value<std::string>()->default_value("INFO"), "logging level")
         ("rf24-ce-pin", po::value<uint16_t>()->default_value(23), "CE pin number")
         ("rf24-csn-pin", po::value<uint16_t>()->default_value(0), "CSN pin number (00 for /dev/spidev0.0, 11 for /dev/spidev1.1, etc.)")
+		("rf24-channel", po::value<uint8_t>()->default_value(97), "RF24 channel")
+		("rf24-data-rate", po::value<uint8_t>()->default_value(0), "RF24 data rate (0 - RF24_1MBPS, 1 - RF24_2MBPS, 2 - RF24_250KBPS)")
 		("force-mkdirs", po::value<bool>()->default_value(false), "create missing directories")
 		("gateway-ip", po::value<std::string>()->default_value("10.10.2.0"), "gateway ip address")
 		("gateway-subnet", po::value<std::string>()->default_value("255.255.255.0"), "gateway subnet")
+		("gateway-node-id", po::value<uint8_t>()->default_value(0), "gateway node id")
+		
         ;
 
     return desc;
