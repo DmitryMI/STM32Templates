@@ -39,7 +39,11 @@ private:
 	uint32_t reqTimer = 0;
 	uint32_t meshTimer = 0;
 
-	int currentHostIndex = 0;
+	bool mbedtlsTimerWorking = false;
+	uint32_t mbedtlsTimerStart = 0;
+	uint32_t mbedtlsTimerIntMs = 0;
+	uint32_t mbedtlsTimerFinMs = 0;
+	uint32_t mbedtlsRecvTimeoutStart = 0;
 
 	// EOLs are required! Parsing fails without them.
 	static constexpr const char *CertificateAuthority = "-----BEGIN CERTIFICATE-----\n"
@@ -54,26 +58,31 @@ private:
 			"rz9NVHZJ8kboBtS40o/2VFEekCoG8RtpN+cffg==\n"
 			"-----END CERTIFICATE-----\n";
 
+	static void printHexArray(uint8_t* arr, int len);
+
 	bool setupRf24();
 	void updateMesh();
 
 	bool connectWithTls();
 
-	static int entropySourceCallback(void *data, unsigned char *output, size_t len, size_t *olen);
+	static int mbedtlsEntropySourceCallback(void *data, unsigned char *output, size_t len, size_t *olen);
 
-	static int mbedtlsTcpSendCallback(void *ctx, const unsigned char *buf, size_t len);
-	static int mbedtlsTcpRecvCallback(void *ctx, unsigned char *buf, size_t len);
+	static void mbedtlsTimerSetCallback(void* data, uint32_t int_ms, uint32_t fin_ms);
+	static int mbedtlsTimerGetCallback(void* data);
 
 	static int mbedtlsUdpSendCallback(void *ctx, const unsigned char *buf, size_t len);
 	static int mbedtlsUdpRecvCallback(void *ctx, unsigned char *buf, size_t len);
+	static int mbedtlsUdpRecvTimeoutCallback(void *ctx, unsigned char *buf, size_t len, uint32_t timeout);
 
 	static void mbedtlsDebugPrintCallback(void *ctx, int level, const char *file, int line, const char *str);
 	static void* mbedtlsCallockCallback(size_t num, size_t size);
 
-	int mbedtlsTcpSendImpl(const unsigned char *buf, size_t len);
-	int mbedtlsTcpRecvImpl(unsigned char *buf, size_t len);
 	int mbedtlsUdpSendImpl(const unsigned char *buf, size_t len);
 	int mbedtlsUdpRecvImpl(unsigned char *buf, size_t len);
+	int mbedtlsUdpRecvTimeoutImpl(unsigned char *buf, size_t len, uint32_t timeout);
+
+	void mbedtlsTimerSetImpl(uint32_t int_ms, uint32_t fin_ms);
+	int mbedtlsTimerGetImpl();
 };
 
 #endif /* INC_RF24SIMPLEMESHCLIENT_H_ */

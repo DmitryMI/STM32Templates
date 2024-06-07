@@ -290,6 +290,7 @@ void RF24UDP::flush()
 {
     appdata.packet_in = 0;
     appdata.packet_in_size = 0;
+    appdata.in_pos = 0;
     RF24EthernetClass::tick();
 }
 

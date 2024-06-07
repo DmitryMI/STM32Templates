@@ -58,7 +58,7 @@
         #if defined linux || defined __linux
             #define MAX_PAYLOAD_SIZE 1514
         #else
-            #define MAX_PAYLOAD_SIZE 1500
+            #define MAX_PAYLOAD_SIZE 1514
 			// #define MAX_PAYLOAD_SIZE 384
         #endif
     #endif // MAX_PAYLOAD_SIZE

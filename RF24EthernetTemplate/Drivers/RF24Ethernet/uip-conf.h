@@ -80,6 +80,7 @@
  */
 
 #define UIP_CONF_BUFFER_SIZE MAX_PAYLOAD_SIZE - 2
+// #define UIP_CONF_BUFFER_SIZE 512
 /**
  * @brief <b>Optional:</b> Uncomment to disable
  *
@@ -124,7 +125,7 @@
  * Increase this value to reduce response times and increase throughput during user interactions.
  * @note: Increasing this value will increase throughput for individual nodes, but can impact other network traffic.
  */
-#define UIP_TIMER_DIVISOR 1000
+#define UIP_TIMER_DIVISOR 32
 
 /**
  * If operating solely as a server, disable the ability to open TCP connections as a client by setting to 0
